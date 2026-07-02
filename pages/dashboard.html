@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timify — Dashboard</title>
+  <!--
+    dashboard.html
+    Full-page dashboard for reports, task management, and settings.
+    Opened from the popup or directly via chrome.runtime.getURL.
+  -->
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard">
+    <header class="dashboard__header">
+      <div class="dashboard__header-inner">
+        <h1 class="dashboard__title">Timify Dashboard</h1>
+        <p class="dashboard__subtitle text-muted">Track your focus and progress</p>
+      </div>
+    </header>
+
+    <nav class="dashboard__nav">
+      <button class="dashboard__nav-item dashboard__nav-item--active" data-section="overview" type="button">
+        Overview
+      </button>
+      <button class="dashboard__nav-item" data-section="tasks" type="button">
+        Tasks
+      </button>
+      <button class="dashboard__nav-item" data-section="reports" type="button">
+        Reports
+      </button>
+      <button class="dashboard__nav-item" data-section="settings" type="button">
+        Settings
+      </button>
+    </nav>
+
+    <main class="dashboard__main">
+      <section class="dashboard__section" id="section-overview">
+        <h2 class="dashboard__section-title">Today's Overview</h2>
+        <div class="dashboard__stats">
+          <div class="dashboard__stat card">
+            <span class="dashboard__stat-value" id="stat-focus-minutes">0</span>
+            <span class="dashboard__stat-label text-muted">Focus Minutes</span>
+          </div>
+          <div class="dashboard__stat card">
+            <span class="dashboard__stat-value" id="stat-sessions">0</span>
+            <span class="dashboard__stat-label text-muted">Sessions</span>
+          </div>
+          <div class="dashboard__stat card">
+            <span class="dashboard__stat-value" id="stat-tasks">0</span>
+            <span class="dashboard__stat-label text-muted">Tasks Done</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard__section hidden" id="section-tasks">
+        <h2 class="dashboard__section-title">Tasks</h2>
+        <div class="dashboard__task-panel card">
+          <p class="text-muted">Task management will appear here.</p>
+          <ul class="dashboard__task-list" id="dashboard-task-list"></ul>
+        </div>
+      </section>
+
+      <section class="dashboard__section hidden" id="section-reports">
+        <h2 class="dashboard__section-title">Reports</h2>
+        <div class="dashboard__report-panel card">
+          <p class="text-muted">Study reports and analytics will appear here.</p>
+        </div>
+      </section>
+
+      <section class="dashboard__section hidden" id="section-settings">
+        <h2 class="dashboard__section-title">Settings</h2>
+        <div class="dashboard__settings-panel card">
+          <p class="text-muted">Extension settings will appear here.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>
