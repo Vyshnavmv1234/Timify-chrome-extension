@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timify — Settings</title>
+  <meta name="description" content="Configure Timify — notifications, sounds, timer durations, blocked websites, and more.">
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="settings.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="settings-page">
+
+    <!-- Header -->
+    <header class="settings-header">
+      <div class="settings-header__inner">
+        <div class="settings-header__brand">
+          <div class="settings-header__logo">T</div>
+          <div>
+            <h1 class="settings-header__title">Settings</h1>
+            <p class="settings-header__subtitle">Customize your Timify experience</p>
+          </div>
+        </div>
+        <button id="btn-open-dashboard" class="btn btn--secondary" type="button">
+          Open Dashboard
+        </button>
+      </div>
+    </header>
+
+    <!-- Settings Content -->
+    <main class="settings-main">
+      <div class="settings-layout">
+
+        <!-- ===== GENERAL ===== -->
+        <section class="settings-section" id="section-general">
+          <div class="settings-section__header">
+            <div class="settings-section__icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </div>
+            <h2 class="settings-section__title">General</h2>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Notifications</span>
+                <span class="settings-row__desc">Timer completion and focus alerts</span>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="toggle-notifications" aria-label="Notifications">
+                <span class="toggle__track"></span>
+              </label>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Sound Effects</span>
+                <span class="settings-row__desc">Play sounds on timer events</span>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="toggle-sound" aria-label="Sound Effects">
+                <span class="toggle__track"></span>
+              </label>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Dark Mode</span>
+                <span class="settings-row__desc">Always-on dark interface</span>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="toggle-dark-mode" aria-label="Dark Mode">
+                <span class="toggle__track"></span>
+              </label>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Username</span>
+                <span class="settings-row__desc">Your name shown in the greeting</span>
+              </div>
+              <input
+                id="input-username"
+                class="settings-input"
+                type="text"
+                maxlength="32"
+                placeholder="Student"
+                aria-label="Username"
+              >
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== FOCUS MODE ===== -->
+        <section class="settings-section" id="section-focus">
+          <div class="settings-section__header">
+            <div class="settings-section__icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <h2 class="settings-section__title">Focus Mode</h2>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Enable Focus Mode</span>
+                <span class="settings-row__desc">Block distracting websites during sessions</span>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="toggle-focus-mode" aria-label="Enable Focus Mode">
+                <span class="toggle__track"></span>
+              </label>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Strict Mode</span>
+                <span class="settings-row__desc">Cannot disable focus mode while a session is active</span>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="toggle-strict-mode" aria-label="Strict Mode">
+                <span class="toggle__track"></span>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== TIMER / POMODORO ===== -->
+        <section class="settings-section" id="section-timer">
+          <div class="settings-section__header">
+            <div class="settings-section__icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <h2 class="settings-section__title">Timer &amp; Pomodoro</h2>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Focus Duration</span>
+                <span class="settings-row__desc">Default Pomodoro focus session length</span>
+              </div>
+              <div class="settings-input-group">
+                <input
+                  id="input-focus-minutes"
+                  class="settings-input settings-input--number"
+                  type="number"
+                  min="5"
+                  max="180"
+                  value="25"
+                  aria-label="Focus duration in minutes"
+                >
+                <span class="settings-input-group__unit">min</span>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Break Duration</span>
+                <span class="settings-row__desc">Default Pomodoro break session length</span>
+              </div>
+              <div class="settings-input-group">
+                <input
+                  id="input-break-minutes"
+                  class="settings-input settings-input--number"
+                  type="number"
+                  min="1"
+                  max="60"
+                  value="5"
+                  aria-label="Break duration in minutes"
+                >
+                <span class="settings-input-group__unit">min</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== GOALS ===== -->
+        <section class="settings-section" id="section-goals">
+          <div class="settings-section__header">
+            <div class="settings-section__icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            </div>
+            <h2 class="settings-section__title">Goals</h2>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Daily Focus Goal</span>
+                <span class="settings-row__desc">How many minutes you aim to study per day</span>
+              </div>
+              <div class="settings-input-group">
+                <input
+                  id="input-daily-goal"
+                  class="settings-input settings-input--number"
+                  type="number"
+                  min="30"
+                  max="720"
+                  value="480"
+                  step="30"
+                  aria-label="Daily focus goal in minutes"
+                >
+                <span class="settings-input-group__unit">min</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== MOTIVATION ===== -->
+        <section class="settings-section" id="section-motivation">
+          <div class="settings-section__header">
+            <div class="settings-section__icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <h2 class="settings-section__title">Motivation</h2>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Quote Frequency</span>
+                <span class="settings-row__desc">How often motivational quotes appear during focus sessions</span>
+              </div>
+              <select id="select-motivation-interval" class="settings-select" aria-label="Quote frequency">
+                <option value="15">Every 15 min</option>
+                <option value="30" selected>Every 30 min</option>
+                <option value="45">Every 45 min</option>
+                <option value="60">Every hour</option>
+              </select>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Quote Category</span>
+                <span class="settings-row__desc">Theme of the motivational quotes shown</span>
+              </div>
+              <select id="select-motivation-category" class="settings-select" aria-label="Quote category">
+                <option value="discipline">Discipline</option>
+                <option value="consistency">Consistency</option>
+                <option value="success">Success</option>
+                <option value="deep work">Deep Work</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== ALLOWED WEBSITES ===== -->
+        <section class="settings-section" id="section-allowed">
+          <div class="settings-section__header">
+            <div class="settings-section__icon-wrap allowed">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+            <h2 class="settings-section__title">Allowed Websites</h2>
+          </div>
+
+          <div class="settings-card">
+            <p class="settings-card__desc">These sites are always permitted, even when focus mode is active.</p>
+            <div class="chip-list" id="allowed-chip-list"></div>
+            <div class="settings-add-row">
+              <input
+                id="input-add-allowed"
+                class="settings-input settings-input--flex"
+                type="text"
+                placeholder="e.g. notion.so"
+                aria-label="Add allowed website"
+              >
+              <button id="btn-add-allowed" class="btn btn--primary" type="button">Add</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== BLOCKED WEBSITES ===== -->
+        <section class="settings-section" id="section-blocked">
+          <div class="settings-section__header">
+            <div class="settings-section__icon-wrap blocked">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>
+            </div>
+            <h2 class="settings-section__title">Blocked Websites</h2>
+          </div>
+
+          <div class="settings-card">
+            <p class="settings-card__desc">These sites will be redirected to the focus page when focus mode is active.</p>
+            <div class="chip-list" id="blocked-chip-list"></div>
+            <div class="settings-add-row">
+              <input
+                id="input-add-blocked"
+                class="settings-input settings-input--flex"
+                type="text"
+                placeholder="e.g. youtube.com"
+                aria-label="Add blocked website"
+              >
+              <button id="btn-add-blocked" class="btn btn--danger" type="button">Add</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== DATA ===== -->
+        <section class="settings-section" id="section-data">
+          <div class="settings-section__header">
+            <div class="settings-section__icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            </div>
+            <h2 class="settings-section__title">Data Management</h2>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-row settings-row--actions">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Export Data</span>
+                <span class="settings-row__desc">Download all your sessions, tasks, and settings as JSON</span>
+              </div>
+              <button id="btn-export" class="btn btn--secondary" type="button">Export</button>
+            </div>
+            <div class="settings-row settings-row--actions">
+              <div class="settings-row__info">
+                <span class="settings-row__label">Reset All Data</span>
+                <span class="settings-row__desc">Permanently delete all sessions, tasks, and settings</span>
+              </div>
+              <button id="btn-reset" class="btn btn--danger" type="button">Reset</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Save indicator -->
+        <div id="save-toast" class="save-toast" aria-live="polite" hidden>
+          ✓ Settings saved
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="settings.js"></script>
+</body>
+</html>

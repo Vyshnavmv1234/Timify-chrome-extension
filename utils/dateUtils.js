@@ -59,3 +59,29 @@ export function getEndOfDay(date = new Date()) {
   end.setHours(23, 59, 59, 999);
   return end;
 }
+
+/**
+ * Returns a new Date set to the start of the week (Sunday midnight) for the given date.
+ * @param {Date} [date=new Date()] - Reference date
+ * @returns {Date}
+ */
+export function getStartOfWeek(date = new Date()) {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 = Sunday
+  d.setDate(d.getDate() - day);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+/**
+ * Returns a new Date set to the end of the week (Saturday 23:59:59.999) for the given date.
+ * @param {Date} [date=new Date()] - Reference date
+ * @returns {Date}
+ */
+export function getEndOfWeek(date = new Date()) {
+  const d = new Date(date);
+  const day = d.getDay();
+  d.setDate(d.getDate() + (6 - day));
+  d.setHours(23, 59, 59, 999);
+  return d;
+}

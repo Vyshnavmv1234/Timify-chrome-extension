@@ -1,0 +1,387 @@
+/**
+ * settings.css
+ *
+ * Styles for the full Settings page (pages/settings.html).
+ * Extends global.css — only layout and settings-specific components defined here.
+ */
+
+/* ---------------------------------------------------------------------------
+   Page Shell
+--------------------------------------------------------------------------- */
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ---------------------------------------------------------------------------
+   Header
+--------------------------------------------------------------------------- */
+
+.settings-header {
+  background: var(--color-card);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+
+.settings-header__inner {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.settings-header__logo {
+  width: 42px;
+  height: 42px;
+  background: var(--gradient-primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(79, 140, 255, 0.35);
+}
+
+.settings-header__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.settings-header__subtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+/* ---------------------------------------------------------------------------
+   Main layout
+--------------------------------------------------------------------------- */
+
+.settings-main {
+  flex: 1;
+  padding: 32px 24px 64px;
+}
+
+.settings-layout {
+  max-width: 780px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ---------------------------------------------------------------------------
+   Section
+--------------------------------------------------------------------------- */
+
+.settings-section {}
+
+.settings-section__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.settings-section__icon-wrap {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-muted);
+  border-radius: 8px;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.settings-section__icon-wrap svg {
+  width: 16px;
+  height: 16px;
+}
+
+.settings-section__icon-wrap.allowed {
+  background: rgba(52, 199, 89, 0.12);
+  color: #34c759;
+}
+
+.settings-section__icon-wrap.blocked {
+  background: rgba(255, 59, 48, 0.12);
+  color: var(--color-danger);
+}
+
+.settings-section__title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* ---------------------------------------------------------------------------
+   Settings Card (the white/dark box that groups rows)
+--------------------------------------------------------------------------- */
+
+.settings-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.settings-card__desc {
+  margin: 0;
+  padding: 14px 20px 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+/* ---------------------------------------------------------------------------
+   Settings Row
+--------------------------------------------------------------------------- */
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+  transition: background 0.15s ease;
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.settings-row--actions {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.settings-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-row__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.settings-row__desc {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* ---------------------------------------------------------------------------
+   Inputs
+--------------------------------------------------------------------------- */
+
+.settings-input {
+  background: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  min-width: 0;
+}
+
+.settings-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.15);
+}
+
+.settings-input--number {
+  width: 68px;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+
+.settings-input--number::-webkit-inner-spin-button,
+.settings-input--number::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+.settings-input--flex {
+  flex: 1;
+}
+
+/* Input + unit grouping */
+.settings-input-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.settings-input-group__unit {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   Select
+--------------------------------------------------------------------------- */
+
+.settings-select {
+  background: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 7px 28px 7px 10px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.settings-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.15);
+}
+
+/* ---------------------------------------------------------------------------
+   Chip list (website pills)
+--------------------------------------------------------------------------- */
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 20px 12px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 4px 10px 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.chip__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34c759;
+  flex-shrink: 0;
+}
+
+.chip__dot--blocked {
+  background: var(--color-danger);
+}
+
+.chip__remove {
+  background: none;
+  border: none;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  padding: 0;
+  font-size: 10px;
+  line-height: 1;
+  margin-left: 2px;
+  transition: color 0.15s ease;
+}
+
+.chip__remove:hover {
+  color: var(--color-danger);
+}
+
+/* Add website row */
+.settings-add-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 16px;
+  align-items: center;
+}
+
+/* ---------------------------------------------------------------------------
+   Save toast
+--------------------------------------------------------------------------- */
+
+.save-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: var(--radius-full);
+  padding: 10px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(79, 140, 255, 0.4);
+  z-index: 999;
+  animation: toast-in 0.2s ease;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ---------------------------------------------------------------------------
+   Responsive
+--------------------------------------------------------------------------- */
+
+@media (max-width: 600px) {
+  .settings-main {
+    padding: 20px 12px 48px;
+  }
+
+  .settings-header__inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settings-row {
+    flex-wrap: wrap;
+  }
+}

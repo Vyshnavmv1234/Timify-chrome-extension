@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timify — Focus Session Active</title>
+  <meta name="description" content="You've been redirected because a distracting website was detected during your focus session.">
+  <link rel="stylesheet" href="../styles/global.css">
+  <link rel="stylesheet" href="blocked.css">
+</head>
+<body>
+  <div class="blocked-container">
+    <div class="card card--glow blocked-card">
+
+      <!-- Icon -->
+      <div class="blocked-card__icon" aria-hidden="true">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="var(--color-danger)" stroke-width="1.8"/>
+          <path d="M12 8v5M12 16h.01" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <h1 class="blocked-card__title">Focus Session Active</h1>
+      <p class="blocked-card__message text-secondary">
+        This website is blocked to help you stay focused.
+      </p>
+
+      <!-- Countdown timer -->
+      <div class="blocked-card__timer">
+        <span class="timer-label text-faint">REMAINING TIME</span>
+        <span class="timer-countdown mono" id="countdown-display">--:--</span>
+      </div>
+
+      <!-- Session context -->
+      <div class="blocked-context" id="blocked-context">
+
+        <div class="context-row">
+          <span class="context-row__icon" aria-hidden="true">🎯</span>
+          <div class="context-row__body">
+            <span class="context-row__label">Current Task</span>
+            <span class="context-row__value" id="ctx-task">—</span>
+          </div>
+        </div>
+
+        <div class="context-row">
+          <span class="context-row__icon" aria-hidden="true">📊</span>
+          <div class="context-row__body">
+            <span class="context-row__label">Today's Goal</span>
+            <span class="context-row__value" id="ctx-goal">—</span>
+          </div>
+        </div>
+
+        <div class="context-row">
+          <span class="context-row__icon" aria-hidden="true">⏱</span>
+          <div class="context-row__body">
+            <span class="context-row__label">Focus Session</span>
+            <span class="context-row__value" id="ctx-session">—</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="blocked-card__actions">
+        <button class="btn btn--primary btn--block" id="continue-studying-btn" type="button">
+          Continue Studying
+        </button>
+        <button class="btn btn--secondary btn--block" id="open-dashboard-btn" type="button">
+          Open Dashboard
+        </button>
+        <button class="btn btn--ghost btn--block" id="end-session-btn" type="button">
+          End Session
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module" src="blocked.js"></script>
+</body>
+</html>
