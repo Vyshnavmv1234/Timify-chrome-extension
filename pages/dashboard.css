@@ -353,6 +353,19 @@
   background-color: var(--color-border);
 }
 
+.cross-mode-banner {
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+  padding: 8px 12px;
+  background-color: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  text-align: center;
+  font-weight: 500;
+}
+
 /* --- Timer Controls --- */
 .timer-card__controls {
   display: flex;
