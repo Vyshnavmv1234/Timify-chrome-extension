@@ -56,7 +56,7 @@
         <p class="section-label">Today's Progress</p>
 
         <div class="card" style="padding: var(--spacing-md);">
-          <div class="stat-grid">
+          <div class="stat-grid stat-grid--2col">
             <div class="stat-item">
               <span class="stat-item__value" id="stat-study-time">0m</span>
               <span class="stat-item__label">Study Time</span>
@@ -65,17 +65,13 @@
               <span class="stat-item__value" id="stat-sessions">0</span>
               <span class="stat-item__label">Sessions</span>
             </div>
-            <div class="stat-item">
-              <span class="stat-item__value" id="stat-focus-score">80</span>
-              <span class="stat-item__label">Focus Score</span>
-            </div>
           </div>
         </div>
 
         <!-- Current Session Timer -->
         <div class="card timer-card card--glow">
           <p class="timer-card__label">Focus Timer</p>
-          <p class="timer-card__display" aria-label="Timer display">25:00</p>
+          <p class="timer-card__display" aria-label="Timer display">--:--</p>
           <div class="timer-card__actions">
             <button id="btn-timer-start" class="btn btn--primary" type="button">Start</button>
             <button id="btn-timer-stop" class="btn btn--ghost" type="button">Stop</button>

@@ -1,12 +1,28 @@
 /**
  * dashboard.css
  *
- * Styles for the Timify dashboard.
+ * Timify dashboard — Obsidian Coral design system (Stitch reference).
  * Three pages: Study Timer, Tasks, Reports.
- * Layout: Sidebar + Topbar + Page content.
+ * Layout: fixed-width Sidebar (260 px) + fluid main content area.
+ *
+ * Class names queried by dashboard.js are preserved verbatim:
+ *   .nav-item / .nav-item--active / [data-nav]
+ *   .mode-switch__btn / .mode-switch__btn--active
+ *   .timer-ring__progress
+ *   .timer-card__presets .chip / .chip--active / .chip--outline
+ *   .timer-meta / .timer-meta__item / .timer-meta__sep / .timer-meta__label / .timer-meta__value
+ *   .period-tab / .period-tab--active
+ *   .task-row / .task-row--done
+ *   .task-row__checkbox / .task-row__checkbox--checked
+ *   .task-row__body / .task-row__title / .task-row__delete
+ *   .page / .page--hidden
+ *   .bar-chart__bars / .bar-chart__bars--today
  */
 
-/* --- App Container & Layout --- */
+/* ================================================================
+   APP SHELL
+   ================================================================ */
+
 .app {
   display: flex;
   min-height: 100vh;
@@ -24,55 +40,64 @@
   position: relative;
 }
 
-/* --- Sidebar --- */
+/* ================================================================
+   SIDEBAR
+   ================================================================ */
+
 .sidebar {
-  width: 240px;
-  background-color: var(--color-card);
+  width: var(--sidebar-width);
+  background-color: var(--color-card-lowest);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-xl) var(--spacing-lg);
+  padding: var(--spacing-2xl) 0 0;
   flex-shrink: 0;
 }
 
+/* Brand */
 .sidebar__brand {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-2xl);
+  padding: 0 var(--spacing-2xl);
 }
 
+/* Square icon with primary-container background */
 .sidebar__mark {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  border-radius: 50%;
+  background-color: var(--color-primary-container);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(79, 140, 255, 0.3);
+  flex-shrink: 0;
+  /* currentColor picked up by child SVG paths */
+  color: var(--color-on-primary-container);
 }
 
 .sidebar__wordmark {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  background: linear-gradient(90deg, #ffffff, #dcdde1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: var(--font-size-2xl);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
 }
 
+/* Nav */
 .sidebar__nav {
   flex: 1;
+  padding: 0 var(--spacing-lg);
 }
 
 .sidebar__nav ul {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 2px;
 }
 
+/* Nav items — active state uses a left-border indicator (Stitch pattern) */
 .nav-item {
   display: flex;
   align-items: center;
@@ -85,39 +110,35 @@
   gap: var(--spacing-md);
   transition: background var(--transition-fast), color var(--transition-fast);
   position: relative;
+  /* Left-border placeholder — shown for active items */
+  border-left: 2px solid transparent;
 }
 
 .nav-item:hover {
-  background-color: var(--color-card-hover);
+  background-color: var(--color-card);
   color: var(--color-text);
 }
 
 .nav-item--active {
-  background-color: var(--color-primary-muted);
+  background-color: var(--color-card-highest);
   color: var(--color-primary);
-  font-weight: 600;
+  border-left-color: var(--color-primary);
 }
 
+/* The old absolute indicator span is hidden; left-border takes its role */
 .nav-item__indicator {
-  position: absolute;
-  left: 0;
-  top: 25%;
-  height: 50%;
-  width: 3px;
-  background-color: var(--color-primary);
-  border-radius: 0 2px 2px 0;
   display: none;
-}
-
-.nav-item--active .nav-item__indicator {
-  display: block;
 }
 
 .nav-item__icon {
   flex-shrink: 0;
 }
 
-/* --- Topbar --- */
+
+/* ================================================================
+   TOPBAR
+   ================================================================ */
+
 .topbar {
   height: var(--nav-height);
   border-bottom: 1px solid var(--color-border);
@@ -125,8 +146,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--spacing-2xl);
-  background-color: rgba(15, 17, 21, 0.7);
-  backdrop-filter: blur(12px);
+  background-color: rgba(27, 17, 15, 0.88);
+  backdrop-filter: blur(20px);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -134,27 +155,22 @@
 }
 
 .topbar__title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-sm);
   font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--color-text);
-}
-
-.topbar__right {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .topbar__date {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
   font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
 }
 
-/* --- Page Switching --- */
+/* ================================================================
+   PAGE SWITCHING
+   ================================================================ */
+
 .page {
   flex: 1;
   overflow-y: auto;
@@ -164,60 +180,53 @@
   display: none;
 }
 
-/* --- Shared: eyebrow, text helpers --- */
+/* ================================================================
+   SHARED UTILITIES
+   ================================================================ */
+
 .eyebrow {
   font-size: var(--font-size-xs);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-secondary);
-}
-
-.text-muted {
-  color: var(--color-text-secondary);
-}
-
-.text-faint {
+  letter-spacing: 0.1em;
   color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
 }
 
-.mono {
-  font-family: monospace;
-}
+.text-muted  { color: var(--color-text-secondary); }
+.text-faint  { color: var(--color-text-tertiary); font-size: var(--font-size-xs); }
+.mono        { font-family: monospace; }
 
-/* ================================================================ */
-/* STUDY TIMER PAGE                                                  */
-/* ================================================================ */
+/* ================================================================
+   STUDY TIMER PAGE
+   ================================================================ */
 
 .timer-page {
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: var(--spacing-2xl);
-  min-height: 100%;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100vh - var(--nav-height));
+  padding: var(--spacing-2xl) var(--spacing-2xl) var(--spacing-xl);
+  overflow-y: auto;
 }
 
-/* --- Mode Switch (Segmented Control) --- */
+/* ── Mode Switch (Segmented Control) ── */
 .mode-switch {
   display: flex;
   background: var(--color-card-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
-  padding: 4px;
-  width: 100%;
-  margin-bottom: var(--spacing-lg);
+  padding: 3px;
+  margin-bottom: var(--spacing-2xl);
 }
 
 .mode-switch__btn {
-  flex: 1;
-  padding: 6px var(--spacing-md);
+  padding: 6px 32px;
   border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-secondary);
-  transition: background var(--transition-fast), color var(--transition-fast);
-  text-align: center;
+  transition: background var(--transition-fast), color var(--transition-fast),
+              box-shadow var(--transition-fast);
 }
 
 .mode-switch__btn:hover {
@@ -225,60 +234,33 @@
 }
 
 .mode-switch__btn--active {
-  background: var(--color-primary);
-  color: #ffffff;
-  font-weight: 600;
+  background: var(--color-card-highest);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
 }
 
-/* --- Timer Card --- */
-.timer-card {
+/* ── Cross-mode banner ── */
+.cross-mode-banner {
+  width: 100%;
+  max-width: 520px;
+  margin-bottom: var(--spacing-lg);
+  padding: 8px 16px;
+  background-color: rgba(255, 180, 165, 0.07);
+  border: 1px solid rgba(255, 180, 165, 0.18);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ── Timer Ring ── */
+.timer-ring-wrap {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  width: 100%;
-  max-width: 420px;
-}
-
-.timer-card__head {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  align-items: center;
-  margin-bottom: var(--spacing-md);
-  text-align: left;
-}
-
-.timer-card__mode-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--color-primary-muted);
-  color: var(--color-primary);
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-.pulse-dot {
-  width: 6px;
-  height: 6px;
-  background-color: var(--color-primary);
-  border-radius: 50%;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0%   { transform: scale(0.9); opacity: 0.6; }
-  50%  { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(0.9); opacity: 0.6; }
-}
-
-.timer-card__display {
-  position: relative;
-  margin: var(--spacing-md) 0;
+  margin-bottom: var(--spacing-xl);
 }
 
 .timer-ring {
@@ -288,6 +270,8 @@
   justify-content: center;
 }
 
+/* The SVG is 420×420 displayed but viewBox is 220×220.
+   transform-origin must stay at the viewBox center (110 110). */
 .timer-ring__progress {
   transform: rotate(-90deg);
   transform-origin: 110px 110px;
@@ -299,28 +283,165 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: var(--spacing-sm);
 }
 
+/* Large display time — Inter Light for elegance */
 .timer-ring__time {
   font-size: var(--font-size-timer);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+  line-height: 1;
+  font-family: var(--font-family);
+  font-variant-numeric: tabular-nums;
 }
 
 .timer-ring__label {
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
-  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
 }
 
-/* --- Timer Meta (Elapsed, Completion, Finish time) --- */
+/* ── Mode Pill (inside ring) ── */
+.timer-card__mode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--color-primary-muted);
+  color: var(--color-primary);
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-top: var(--spacing-xs);
+}
+
+.pulse-dot {
+  width: 5px;
+  height: 5px;
+  background-color: var(--color-primary);
+  border-radius: 50%;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%   { transform: scale(0.85); opacity: 0.55; }
+  50%  { transform: scale(1.2);  opacity: 1; }
+  100% { transform: scale(0.85); opacity: 0.55; }
+}
+
+/* Running state — stopwatch recording */
+.timer-card__mode-pill.is-running {
+  background: rgba(74, 220, 195, 0.12);
+  color: var(--color-success);
+}
+
+.timer-card__mode-pill.is-running .pulse-dot {
+  background-color: var(--color-success);
+}
+
+/* ── Timer Controls ── */
+.timer-card__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Large pill for Start / Pause / Resume / Clock-In button */
+.btn--timer-pill {
+  padding: var(--spacing-md) var(--spacing-2xl);
+  border-radius: var(--radius-full);
+  font-weight: 500;
+  font-size: var(--font-size-base);
+  gap: var(--spacing-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Finish / Stop pill button — secondary surface */
+.btn--timer-finish {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-2xl);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  background: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+              color var(--transition-fast), transform var(--transition-fast);
+  user-select: none;
+}
+
+.btn--timer-finish:hover {
+  background: var(--color-card-high);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.btn--timer-finish:active {
+  transform: scale(0.97);
+}
+
+/* Small circular ghost-icon button for Reset */
+.btn--ghost-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-card-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.btn--ghost-icon:hover {
+  background: var(--color-card-high);
+  color: var(--color-text-secondary);
+}
+
+/* Danger button — used by JS for stopwatch clock-out */
+.btn--danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-2xl);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  background: var(--color-danger-muted);
+  border: 1px solid rgba(255, 180, 171, 0.25);
+  color: var(--color-danger);
+  transition: background var(--transition-fast);
+  user-select: none;
+}
+
+.btn--danger:hover {
+  background: rgba(255, 180, 171, 0.25);
+}
+
+/* ── Timer Meta Rows ── */
 .timer-meta {
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: center;
+  gap: var(--spacing-2xl);
   width: 100%;
-  margin-bottom: var(--spacing-lg);
-  padding: var(--spacing-sm) var(--spacing-md);
+  max-width: 520px;
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-xl);
   background-color: var(--color-card-elevated);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
@@ -330,84 +451,48 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
 }
 
 .timer-meta__label {
-  font-size: 9px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
   color: var(--color-text-tertiary);
   font-weight: 600;
 }
 
 .timer-meta__value {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  font-weight: 500;
+  font-size: var(--font-size-md);
+  color: var(--color-text);
+  font-weight: 400;
 }
 
 .timer-meta__sep {
   width: 1px;
-  height: 20px;
-  background-color: var(--color-border);
+  height: 26px;
+  background-color: var(--color-border-strong);
 }
 
-.cross-mode-banner {
-  width: 100%;
-  margin-bottom: var(--spacing-md);
-  padding: 8px 12px;
-  background-color: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.25);
-  border-radius: var(--radius-md);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
+/* Stopwatch single-item row: stretch across */
+#stopwatch-meta .timer-meta__item {
+  flex: 1;
   text-align: center;
-  font-weight: 500;
 }
 
-/* --- Timer Controls --- */
-.timer-card__controls {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-md);
-}
-
-.btn--ghost-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--color-border);
-  background: var(--color-card-elevated);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-secondary);
-  transition: background var(--transition-fast), color var(--transition-fast);
-}
-
-.btn--ghost-icon:hover {
-  background: var(--color-card-hover);
-  color: var(--color-text);
-}
-
-.btn--large {
-  border-radius: var(--radius-full);
-  padding: var(--spacing-sm) var(--spacing-2xl);
-  font-weight: 600;
-}
-
+/* ── Divider ── */
 .divider {
   width: 100%;
+  max-width: 520px;
   height: 1px;
   background-color: var(--color-border);
   margin: var(--spacing-md) 0;
 }
 
-/* --- Preset Chips --- */
+/* ── Duration Preset Chips ── */
 .timer-card__presets {
   width: 100%;
+  max-width: 520px;
   text-align: left;
 }
 
@@ -423,24 +508,26 @@
 }
 
 .chip {
-  padding: 4px var(--spacing-md);
+  padding: 5px var(--spacing-md);
   border-radius: var(--radius-full);
   background: var(--color-card-elevated);
   border: 1px solid var(--color-border);
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
-  transition: background var(--transition-fast), color var(--transition-fast);
+  font-weight: 500;
+  transition: background var(--transition-fast), color var(--transition-fast),
+              border-color var(--transition-fast);
 }
 
 .chip:hover {
-  background: var(--color-card-hover);
+  background: var(--color-card-high);
   color: var(--color-text);
 }
 
 .chip--active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #ffffff;
+  background: var(--color-primary-muted);
+  border-color: rgba(255, 180, 165, 0.3);
+  color: var(--color-primary);
 }
 
 .chip--outline {
@@ -448,39 +535,41 @@
   border-style: dashed;
 }
 
-/* --- Custom Duration Panel --- */
+/* ── Custom Duration Panel ── */
 .custom-duration {
   width: 100%;
-  margin-top: var(--spacing-md);
+  max-width: 520px;
   text-align: left;
+  margin-top: var(--spacing-sm);
 }
 
 .custom-duration__row {
   display: flex;
   align-items: flex-end;
   gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
 }
 
 .custom-duration__field {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 4px;
   flex: 1;
 }
 
 .custom-duration__label {
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--color-text-tertiary);
   font-weight: 600;
 }
 
 .custom-duration__colon {
   font-size: var(--font-size-2xl);
-  font-weight: 700;
+  font-weight: 300;
   color: var(--color-text-tertiary);
-  padding-bottom: 2px;
+  padding-bottom: 4px;
 }
 
 .timer-input {
@@ -491,7 +580,7 @@
   color: var(--color-text);
   font-family: inherit;
   font-size: var(--font-size-md);
-  padding: 6px var(--spacing-sm);
+  padding: 7px var(--spacing-md);
   outline: none;
   text-align: center;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -518,65 +607,63 @@
   color: var(--color-text-tertiary);
 }
 
-/* --- Stopwatch state --- */
-.stopwatch-elapsed-label {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-  margin-top: 2px;
-}
-
-/* Running pulse on mode pill — only visible while stopwatch is running */
-.timer-card__mode-pill.is-running .pulse-dot {
-  background-color: #34d399;  /* green while stopwatch ticks */
-}
-
-.timer-card__mode-pill.is-running {
-  background: rgba(52, 211, 153, 0.12);
-  color: #34d399;
-}
-
-/* Single-item meta row (stopwatch today's total) — stretch to full width */
-#stopwatch-meta .timer-meta__item {
-  flex: 1;
-}
-
-/* ================================================================ */
-/* TASKS PAGE                                                        */
-/* ================================================================ */
+/* ================================================================
+   TASKS PAGE
+   ================================================================ */
 
 .tasks-page {
-  max-width: 680px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: var(--spacing-2xl);
+  padding: var(--spacing-2xl) var(--spacing-2xl);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
+  padding-bottom: 6rem;
 }
 
-/* --- Compose input --- */
+/* Page header */
+.tasks-header {
+  padding-bottom: var(--spacing-lg);
+}
+
+.tasks-header__title {
+  font-size: var(--font-size-3xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.tasks-header__sub {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+}
+
+/* ── Task compose input — flat bottom-border style ── */
 .task-compose {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-sm);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  border-bottom: 1px solid var(--color-card-highest);
+  transition: border-color var(--transition-fast);
 }
 
 .task-compose:focus-within {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-muted);
+  border-bottom-color: var(--color-primary);
 }
 
 .task-compose__inner {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) 0;
 }
 
 .task-compose__icon {
   color: var(--color-text-tertiary);
   flex-shrink: 0;
-  margin-left: var(--spacing-sm);
+  transition: color var(--transition-fast);
+}
+
+.task-compose:focus-within .task-compose__icon {
+  color: var(--color-primary);
 }
 
 .task-compose__input {
@@ -586,41 +673,39 @@
   outline: none;
   color: var(--color-text);
   font-family: inherit;
-  font-size: var(--font-size-base);
-  padding: var(--spacing-sm) 0;
+  font-size: var(--font-size-xl);
+  font-weight: 400;
+  padding: var(--spacing-md) 0;
 }
 
 .task-compose__input::placeholder {
-  color: var(--color-text-tertiary);
+  color: rgba(222, 192, 186, 0.35);
 }
 
-/* ─── removed: .task-compose__priority, .task-filters / .task-filter (no longer used) ─── */
-
-
-/* --- Task Sections (Active / Completed) --- */
+/* ── Task Sections ── */
 .tasks-section {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
 .tasks-section__heading {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   color: var(--color-text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding-left: 2px;
+  padding: var(--spacing-xs) 0;
 }
 
 .tasks-section__count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-card-elevated);
+  background: var(--color-card);
   border: 1px solid var(--color-border);
   color: var(--color-text-tertiary);
   font-size: 10px;
@@ -631,61 +716,61 @@
   border-radius: var(--radius-full);
 }
 
-/* --- Task List --- */
+/* ── Task List ── */
 .tasks-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
 
+/* Flat task rows — no card borders */
 .task-row {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  gap: var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-sm);
   border-radius: var(--radius-md);
-  transition: background var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
+  transition: background var(--transition-fast), opacity var(--transition-fast);
   animation: taskSlideIn 0.2s var(--transition-spring);
 }
 
 @keyframes taskSlideIn {
-  from { opacity: 0; transform: translateY(-6px); }
+  from { opacity: 0; transform: translateY(-5px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .task-row:hover {
-  background: var(--color-card-hover);
-  border-color: var(--color-border-strong);
+  background: var(--color-card);
 }
 
 .task-row--done {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
+/* ── Circular checkbox (matches Stitch design) ── */
 .task-row__checkbox {
   width: 20px;
   height: 20px;
-  border-radius: 6px;
-  border: 1.5px solid var(--color-border-strong);
+  border-radius: 50%;
+  border: 1.5px solid var(--color-card-highest);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-spring);
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+              transform var(--transition-spring);
 }
 
 .task-row__checkbox:hover {
-  border-color: var(--color-primary);
-  transform: scale(1.1);
+  border-color: rgba(255, 180, 165, 0.5);
+  transform: scale(1.08);
 }
 
 .task-row__checkbox--checked {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
+  background-color: rgba(255, 180, 165, 0.12);
+  border-color: rgba(255, 180, 165, 0.35);
 }
 
 .task-row__body {
@@ -694,25 +779,27 @@
 }
 
 .task-row__title {
-  font-size: var(--font-size-base);
-  font-weight: 500;
+  font-size: var(--font-size-md);
+  font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-text);
   transition: color var(--transition-fast);
 }
 
 .task-row--done .task-row__title {
   text-decoration: line-through;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
 }
 
 .task-row__meta {
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
+/* Priority badges (generated by old JS — keep styled) */
 .task-row__priority {
   font-size: 10px;
   font-weight: 600;
@@ -727,9 +814,10 @@
 .task-row__priority--medium { background: var(--color-warning-muted); color: var(--color-warning); }
 .task-row__priority--low    { background: var(--color-success-muted); color: var(--color-success); }
 
+/* Delete button — revealed on hover */
 .task-row__delete {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -737,7 +825,8 @@
   color: var(--color-text-tertiary);
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+  transition: opacity var(--transition-fast), color var(--transition-fast),
+              background var(--transition-fast);
 }
 
 .task-row:hover .task-row__delete {
@@ -749,7 +838,7 @@
   background: var(--color-danger-muted);
 }
 
-/* --- Empty State --- */
+/* Empty state */
 .tasks-empty {
   display: flex;
   flex-direction: column;
@@ -760,45 +849,87 @@
 }
 
 .tasks-empty__title {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-md);
   font-weight: 500;
 }
 
 .tasks-empty__sub {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
 }
 
-/* ================================================================ */
-/* REPORTS PAGE                                                      */
-/* ================================================================ */
+/* ================================================================
+   REPORTS PAGE
+   ================================================================ */
 
 .reports-page {
+  max-width: 960px;
+  margin: 0 auto;
   padding: var(--spacing-2xl);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-2xl);
+  padding-bottom: 5rem;
 }
 
-/* --- Period selector --- */
-.reports-header {
+/* ── Hero header: Total Study Time ── */
+.reports-hero {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-xl);
+  padding-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-card-highest);
 }
 
+.reports-hero__left {
+  display: flex;
+  flex-direction: column;
+}
+
+.reports-hero__eyebrow {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.reports-hero__display {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+}
+
+/* stat-study-time is set as text by JS (e.g. "2h 30m") — displayed large */
+.reports-hero__value {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.reports-hero__period {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  margin-top: var(--spacing-sm);
+}
+
+/* ── Period tabs ── */
 .period-tabs {
   display: flex;
-  gap: var(--spacing-xs);
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
+  gap: 2px;
+  background: var(--color-card-high);
+  border-radius: var(--radius-md);
   padding: 3px;
+  flex-shrink: 0;
 }
 
 .period-tab {
-  padding: 5px var(--spacing-lg);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
+  padding: 6px var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-secondary);
   transition: background var(--transition-fast), color var(--transition-fast);
@@ -809,96 +940,100 @@
 }
 
 .period-tab--active {
-  background: var(--color-primary);
-  color: #ffffff;
+  background: var(--color-card-highest);
+  color: var(--color-primary);
 }
 
-/* --- Stat Cards Grid --- */
-.stat-grid {
+/* ── 3-column flat stat row ── */
+.stat-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
+  padding: var(--spacing-xl) 0;
+  border-top: 1px solid var(--color-card-highest);
+  border-bottom: 1px solid var(--color-card-highest);
+}
+
+.stat-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: 0 var(--spacing-xl);
+  border-right: 1px solid var(--color-card-highest);
+}
+
+.stat-col:first-child { padding-left: 0; }
+.stat-col:last-child  { border-right: none; }
+
+.stat-col__label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-tertiary);
+}
+
+.stat-col__value {
+  font-size: var(--font-size-3xl);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+/* ── Streak ── */
+.reports-streak {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-base);
+}
+
+.reports-streak__label {
+  color: var(--color-text-tertiary);
+}
+
+.reports-streak__value {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* ── Chart Section ── */
+.reports-chart-section {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-lg);
 }
 
-@media (max-width: 1100px) {
-  .stat-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-.stat-card {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-md);
-  transition: background var(--transition-fast), border-color var(--transition-fast);
-}
-
-.stat-card:hover {
-  background: var(--color-card-hover);
-  border-color: var(--color-border-strong);
-}
-
-.stat-card--wide {
-  flex: 1;
-}
-
-.stat-card__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stat-card__icon--primary { background: var(--color-primary-muted); color: var(--color-primary); }
-.stat-card__icon--success { background: var(--color-success-muted); color: var(--color-success); }
-.stat-card__icon--warning { background: var(--color-warning-muted); color: var(--color-warning); }
-.stat-card__icon--accent  { background: rgba(147, 112, 219, 0.15);  color: #9370db; }
-
-.stat-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.stat-card__label {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.stat-card__value {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--color-text);
-}
-
-/* --- Chart Card --- */
-.reports-chart-card {
-  padding: var(--spacing-lg);
-  width: 100%;
-}
-
-.card__head {
+.reports-chart-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--spacing-lg);
 }
 
+/* Bar chart — JS renders span > i (bar) + label (day) inside .bar-chart__bars */
 .bar-chart {
-  position: relative;
-  height: 140px;
+  height: 280px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  position: relative;
+}
+
+/* Horizontal grid lines at 25% / 50% / 75% / 100% via background-image */
+.bar-chart::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      var(--color-card-highest) 0px,
+      var(--color-card-highest) 1px,
+      transparent 1px,
+      transparent 25%
+    );
+  pointer-events: none;
+  opacity: 0.55;
 }
 
 .bar-chart__bars {
@@ -906,9 +1041,9 @@
   justify-content: space-between;
   align-items: flex-end;
   height: 100%;
+  border-bottom: 1px solid var(--color-card-highest);
+  position: relative;
   z-index: 1;
-  padding: 0 var(--spacing-sm);
-  border-bottom: 1px solid var(--color-border-strong);
 }
 
 .bar-chart__bars span {
@@ -918,35 +1053,36 @@
   flex: 1;
   height: 100%;
   justify-content: flex-end;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
+/* The bar itself (height driven by --h CSS custom property set by JS) */
 .bar-chart__bars span i {
-  width: 24px;
-  height: var(--h);
-  background: var(--color-card-elevated);
+  width: 32px;
+  height: var(--h, 2%);
+  background: var(--color-primary);
   border-radius: 4px 4px 0 0;
-  transition: background var(--transition-fast), height 0.4s ease;
+  opacity: 0.82;
+  font-style: normal;
+  transition: background var(--transition-fast), opacity var(--transition-fast),
+              height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
 .bar-chart__bars span:hover i {
   background: var(--color-primary-hover);
+  opacity: 1;
 }
 
+/* Today's bar gets the container (brighter) coral */
 .bar-chart__bars span.bar-chart__bars--today i {
-  background: linear-gradient(180deg, var(--color-primary-hover), var(--color-primary));
+  background: var(--color-primary-container);
+  opacity: 1;
 }
 
 .bar-chart__bars span label {
-  font-size: 10px;
+  font-size: var(--font-size-sm);
   color: var(--color-text-tertiary);
+  font-weight: 500;
+  cursor: default;
 }
-
-/* --- Secondary stats row (streak + chart) --- */
-.reports-secondary {
-  display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: var(--spacing-lg);
-  align-items: start;
-}
-

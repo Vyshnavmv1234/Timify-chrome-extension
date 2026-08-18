@@ -24,7 +24,7 @@
   right: -80px;
   width: 260px;
   height: 260px;
-  background: radial-gradient(circle, rgba(79, 140, 255, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 180, 165, 0.08) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -99,7 +99,7 @@
   align-items: center;
   justify-content: space-around;
   padding: var(--spacing-md) var(--spacing-2xl);
-  background: rgba(26, 29, 36, 0.92);
+  background: rgba(40, 29, 27, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--color-border);
@@ -247,7 +247,7 @@
 .chart-placeholder__bar {
   width: 14px;
   border-radius: 4px 4px 0 0;
-  background: linear-gradient(to top, var(--color-primary), rgba(79, 140, 255, 0.4));
+  background: linear-gradient(to top, var(--color-primary), rgba(255, 180, 165, 0.4));
   opacity: 0.7;
 }
 
@@ -294,8 +294,8 @@
 }
 
 .search-bar__input:focus {
-  border-color: rgba(79, 140, 255, 0.5);
-  box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.12);
+  border-color: rgba(255, 180, 165, 0.5);
+  box-shadow: 0 0 0 3px rgba(255, 180, 165, 0.12);
 }
 
 /* --- Floating action button --- */
@@ -308,18 +308,18 @@
   height: 52px;
   border-radius: var(--radius-full);
   background: var(--color-primary);
-  color: var(--color-text);
+  color: var(--color-on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-lg), 0 4px 16px rgba(79, 140, 255, 0.4);
+  box-shadow: var(--shadow-lg), 0 4px 16px rgba(255, 180, 165, 0.35);
   transition: transform var(--transition-spring), box-shadow var(--transition-fast);
   z-index: 50;
 }
 
 .fab:hover {
   transform: scale(1.06);
-  box-shadow: var(--shadow-lg), 0 6px 24px rgba(79, 140, 255, 0.5);
+  box-shadow: var(--shadow-lg), 0 6px 24px rgba(255, 180, 165, 0.45);
 }
 
 .fab:active {

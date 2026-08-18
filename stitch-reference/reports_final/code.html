@@ -1,0 +1,120 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"primary-fixed-dim":"#ffb4a5","tertiary-container":"#00b9a1","tertiary-fixed-dim":"#4adcc3","surface-bright":"#433634","on-secondary-fixed-variant":"#454749","on-primary-container":"#731808","on-tertiary":"#00382f","primary-fixed":"#ffdad3","on-tertiary-fixed":"#00201b","outline":"#a58b85","outline-variant":"#57423e","inverse-surface":"#f3deda","secondary-fixed":"#e2e2e5","surface-tint":"#ffb4a5","on-background":"#f3deda","surface-container-highest":"#3f322f","surface-container-lowest":"#150c0a","primary-container":"#ff7f66","tertiary-fixed":"#6cf9df","background":"#1b110f","on-tertiary-fixed-variant":"#005045","inverse-primary":"#a43c28","on-primary":"#640c01","error":"#ffb4ab","surface-dim":"#1b110f","primary":"#ffb4a5","on-secondary-fixed":"#1a1c1e","secondary":"#c6c6c9","secondary-container":"#454749","inverse-on-surface":"#3a2d2b","on-error-container":"#ffdad6","on-secondary-container":"#b4b5b7","on-secondary":"#2f3133","surface-variant":"#3f322f","on-tertiary-container":"#004339","error-container":"#93000a","surface":"#1b110f","tertiary":"#4adcc3","on-error":"#690005","on-surface-variant":"#dec0ba","on-primary-fixed":"#3f0400","on-primary-fixed-variant":"#842413","surface-container-high":"#332725","on-surface":"#f3deda","surface-container-low":"#241917","secondary-fixed-dim":"#c6c6c9","surface-container":"#281d1b"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"stack-gap":"0.75rem","container-padding":"2rem","sidebar-width":"260px","section-gap":"3rem","gutter":"1.5rem"},"fontFamily":{"headline-lg":["Inter"],"headline-md":["Inter"],"body-lg":["Inter"],"label-sm":["Inter"],"label-md":["Inter"],"display":["Inter"],"body-md":["Inter"]},"fontSize":{"headline-lg":["32px",{"lineHeight":"1.2","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"1.3","fontWeight":"500"}],"body-lg":["17px",{"lineHeight":"1.5","fontWeight":"400"}],"label-sm":["11px",{"lineHeight":"1.2","letterSpacing":"0.05em","fontWeight":"600"}],"label-md":["13px",{"lineHeight":"1.2","letterSpacing":"0.01em","fontWeight":"500"}],"display":["48px",{"lineHeight":"1.1","letterSpacing":"-0.02em","fontWeight":"600"}],"body-md":["15px",{"lineHeight":"1.5","fontWeight":"400"}]}}}}</script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"></head><body class="bg-background font-body-md text-body-md text-on-background antialiased"><aside class="fixed left-0 top-0 h-full w-sidebar-width bg-surface-container-low z-50 flex flex-col"><div class="p-container-padding flex items-center gap-3 select-none"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-primary-container text-[20px]">timer</span></div><span class="font-headline-md text-headline-md text-on-surface tracking-tight">Timify</span></div><nav class="flex-1 mt-stack-gap px-4 flex flex-col gap-1" data-active-classes="bg-surface-container-highest text-primary border-l-2 border-primary"><a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all duration-200 group" data-path="study-timer" href="#"><span class="material-symbols-outlined mr-3 text-[22px]">alarm</span><span class="font-label-md text-label-md">Study Timer</span></a><a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all duration-200 group" data-path="tasks" href="#"><span class="material-symbols-outlined mr-3 text-[22px]">checklist</span><span class="font-label-md text-label-md">Tasks</span></a><a aria-current="page" class="flex items-center px-4 py-3 rounded-lg transition-all duration-200 group bg-surface-container-highest text-primary border-l-2 border-primary" data-path="reports" href="#"><span class="material-symbols-outlined mr-3 text-[22px]">bar_chart</span><span class="font-label-md text-label-md">Reports</span></a></nav><div class="p-6 border-t border-white/5"><div class="flex items-center gap-3 px-2 py-2 rounded-xl bg-surface-container-high/50"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface">Pro User</span><span class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Premium</span></div></div></div></aside><div class="pl-sidebar-width"><header class="fixed top-0 left-sidebar-width right-0 h-16 bg-background/80 backdrop-blur-xl z-40 flex items-center justify-end px-container-padding gap-gutter"><button class="p-2 text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined">search</span></button><button class="p-2 text-on-surface-variant hover:text-on-surface transition-colors relative"><span class="material-symbols-outlined">notifications</span><span class="absolute top-2 right-2 w-2 h-2 bg-primary-container rounded-full"></span></button><div class="h-8 w-[1px] bg-white/5 mx-2"></div><button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-full hover:bg-surface-container-highest transition-colors"><span class="material-symbols-outlined text-primary text-[18px]">workspace_premium</span><span class="font-label-md text-label-md text-on-surface">Focus Mode</span></button></header><main class="relative pt-16 min-h-screen bg-background"><div class="p-container-padding max-w-[1200px] mx-auto"><div class="flex flex-col w-full h-full max-w-[900px] mx-auto space-y-12 pb-16">
+<header class="flex items-end justify-between pb-4">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-2">Total Study Time</span>
+<div class="flex items-baseline space-x-2">
+<span class="font-display text-[72px] leading-[1] text-on-surface tracking-tighter">32</span>
+<span class="font-headline-md text-headline-md text-on-surface-variant font-normal">hrs</span>
+</div>
+</div>
+<div class="flex p-1 bg-surface-container-high rounded-lg">
+<button class="px-4 py-2 rounded-md font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors">Daily</button>
+<button class="px-4 py-2 rounded-md bg-surface-container-highest text-primary shadow-sm font-label-md text-label-md">Weekly</button>
+<button class="px-4 py-2 rounded-md font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors">Monthly</button>
+</div>
+</header>
+<section class="grid grid-cols-3 gap-8 py-8 border-y border-surface-container-highest">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-2">Sessions</span>
+<span class="font-headline-lg text-headline-lg text-on-surface font-light">14</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-2">Tasks Done</span>
+<span class="font-headline-lg text-headline-lg text-on-surface font-light">48</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-2">Avg. Session</span>
+<div class="flex items-baseline space-x-1">
+<span class="font-headline-lg text-headline-lg text-on-surface font-light">2.2</span>
+<span class="font-body-md text-body-md text-on-surface-variant">hrs</span>
+</div>
+</div>
+</section>
+<section class="pt-4 relative overflow-hidden">
+<div class="w-full h-[360px] relative z-10 mt-8">
+<svg class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 800 300">
+<g class="text-surface-container-highest" stroke="currentColor" stroke-dasharray="4,4" stroke-width="1">
+<line x1="0" x2="100%" y1="0" y2="0"></line>
+<line x1="0" x2="100%" y1="75" y2="75"></line>
+<line x1="0" x2="100%" y1="150" y2="150"></line>
+<line x1="0" x2="100%" y1="225" y2="225"></line>
+</g>
+<g class="font-label-sm text-label-sm fill-on-surface-variant" transform="translate(-10, 0)">
+<text text-anchor="end" x="0" y="5">8h</text>
+<text text-anchor="end" x="0" y="80">6h</text>
+<text text-anchor="end" x="0" y="155">4h</text>
+<text text-anchor="end" x="0" y="230">2h</text>
+</g>
+<g class="font-label-sm text-label-sm fill-on-surface-variant" transform="translate(40, 290)">
+<text text-anchor="middle" x="0" y="0">Mon</text>
+<text text-anchor="middle" x="120" y="0">Tue</text>
+<text text-anchor="middle" x="240" y="0">Wed</text>
+<text text-anchor="middle" x="360" y="0">Thu</text>
+<text text-anchor="middle" x="480" y="0">Fri</text>
+<text text-anchor="middle" x="600" y="0">Sat</text>
+<text text-anchor="middle" x="720" y="0">Sun</text>
+</g>
+<g class="bars" transform="translate(40, 0)">
+<g transform="translate(-15, 0)">
+<rect class="fill-primary hover:fill-primary-container transition-colors rx-1 cursor-pointer" data-tooltip="4.2h Focus" height="130" width="30" x="0" y="110"></rect>
+</g>
+<g transform="translate(105, 0)">
+<rect class="fill-primary hover:fill-primary-container transition-colors rx-1 cursor-pointer" data-tooltip="6.1h Focus" height="170" width="30" x="0" y="70"></rect>
+</g>
+<g transform="translate(225, 0)">
+<rect class="fill-primary hover:fill-primary-container transition-colors rx-1 cursor-pointer" data-tooltip="3.5h Focus" height="100" width="30" x="0" y="140"></rect>
+</g>
+<g transform="translate(345, 0)">
+<rect class="fill-primary hover:fill-primary-container transition-colors rx-1 cursor-pointer" data-tooltip="7.8h Focus" height="200" width="30" x="0" y="40"></rect>
+</g>
+<g transform="translate(465, 0)">
+<rect class="fill-primary hover:fill-primary-container transition-colors rx-1 cursor-pointer" data-tooltip="5.4h Focus" height="150" width="30" x="0" y="90"></rect>
+</g>
+<g transform="translate(585, 0)">
+<rect class="fill-primary hover:fill-primary-container transition-colors rx-1 cursor-pointer" data-tooltip="1.2h Focus" height="50" width="30" x="0" y="190"></rect>
+</g>
+<g transform="translate(705, 0)">
+<rect class="fill-primary hover:fill-primary-container transition-colors rx-1 cursor-pointer" data-tooltip="2.5h Focus" height="70" width="30" x="0" y="170"></rect>
+</g>
+</g>
+</svg>
+<div class="absolute hidden opacity-0 transition-opacity bg-inverse-surface text-inverse-on-surface px-3 py-1.5 rounded-lg font-label-md text-label-md pointer-events-none shadow-xl border border-white/10 z-50 transform -translate-x-1/2 -translate-y-full mt-[-8px]" id="chart-tooltip">
+<span id="tooltip-text"></span>
+<div class="absolute left-1/2 bottom-[-4px] w-2 h-2 bg-inverse-surface transform -translate-x-1/2 rotate-45 border-r border-b border-white/10"></div>
+</div>
+</div>
+</section>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const bars = document.querySelectorAll('rect[data-tooltip]');
+        const tooltip = document.getElementById('chart-tooltip');
+        const tooltipText = document.getElementById('tooltip-text');
+
+        bars.forEach(bar => {
+            bar.addEventListener('mouseenter', (e) => {
+                const rect = e.target.getBoundingClientRect();
+                const containerRect = e.target.closest('svg').getBoundingClientRect();
+                
+                tooltipText.textContent = e.target.getAttribute('data-tooltip');
+                
+                
+                const left = rect.left - containerRect.left + (rect.width / 2);
+                const top = rect.top - containerRect.top;
+
+                tooltip.style.left = `${left}px`;
+                tooltip.style.top = `${top}px`;
+                
+                tooltip.classList.remove('hidden');
+                
+                setTimeout(() => tooltip.classList.remove('opacity-0'), 10);
+            });
+
+            bar.addEventListener('mouseleave', () => {
+                tooltip.classList.add('opacity-0');
+                setTimeout(() => tooltip.classList.add('hidden'), 150); 
+            });
+        });
+    });
+</script></div></main></div></body></html>
