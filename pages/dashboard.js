@@ -31,6 +31,9 @@ let _timerTickInterval = null;
 let currentPage = 'timer';
 let currentReportPeriod = 'daily';
 
+/** Track mode to detect switches and animate the ring center crossfade. */
+let _prevTimerMode = null;
+
 // ---------------------------------------------------------------------------
 // INIT
 // ---------------------------------------------------------------------------
@@ -43,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function initDashboard() {
   updateTopbarDate();
+  renderMonthNavigator();
+  window.addEventListener('resize', _updateMonthIndicatorPosition);
   bindNavigation();
   bindModeSwitch();
   bindTimerControls();
@@ -119,6 +124,8 @@ function showPage(name) {
   if (name === 'tasks') renderTaskList();
   if (name === 'reports') loadReportsData();
   if (name === 'timer') syncTimerDisplay();
+
+  requestAnimationFrame(_updateMonthIndicatorPosition);
 }
 
 function updateTopbarDate() {
@@ -126,6 +133,62 @@ function updateTopbarDate() {
   if (!el) return;
   const opts = { weekday: 'short', month: 'short', day: 'numeric' };
   el.textContent = new Date().toLocaleDateString('en-US', opts);
+
+  // If month has rolled over, re-render navigator
+  if (_currentRenderedMonth !== null && _currentRenderedMonth !== new Date().getMonth()) {
+    renderMonthNavigator();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// YEAR PROGRESS MONTH NAVIGATOR
+// ---------------------------------------------------------------------------
+
+const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+let _currentRenderedMonth = null;
+
+function renderMonthNavigator() {
+  const container = document.getElementById('month-nav');
+  if (!container) return;
+
+  const currentMonthIdx = new Date().getMonth();
+  _currentRenderedMonth = currentMonthIdx;
+
+  container.innerHTML = `
+    <div class="month-nav__track">
+      <div class="month-nav__indicator" id="month-nav-indicator" aria-hidden="true">
+        <svg width="8" height="6" viewBox="0 0 8 6" fill="currentColor">
+          <path d="M4 6L0.535898 0.75L7.4641 0.75L4 6Z"/>
+        </svg>
+      </div>
+      <ul class="month-nav__list" role="list">
+        ${MONTH_NAMES.map((m, idx) => `
+          <li class="month-nav__item${idx === currentMonthIdx ? ' month-nav__item--active' : ''}" data-month="${idx}">
+            ${m}
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+  `;
+
+  requestAnimationFrame(() => {
+    _updateMonthIndicatorPosition();
+  });
+}
+
+function _updateMonthIndicatorPosition() {
+  const activeItem = document.querySelector('.month-nav__item--active');
+  const indicator = document.getElementById('month-nav-indicator');
+  const track = document.querySelector('.month-nav__track');
+  if (!activeItem || !indicator || !track) return;
+
+  const activeRect = activeItem.getBoundingClientRect();
+  const trackRect = track.getBoundingClientRect();
+  if (trackRect.width === 0) return;
+
+  const relativeLeft = (activeRect.left - trackRect.left) + (activeRect.width / 2);
+  indicator.style.transform = `translateX(${relativeLeft}px) translateX(-50%)`;
+  indicator.style.opacity = '1';
 }
 
 // ---------------------------------------------------------------------------
@@ -156,12 +219,13 @@ async function syncTimerDisplay() {
   if (!state) return;
 
   const isStopwatch = state.timerMode === 'stopwatch';
+  const modeChanged = _prevTimerMode !== null && _prevTimerMode !== state.timerMode;
 
   // Mode button highlight
   document.getElementById('mode-btn-timer')?.classList.toggle('mode-switch__btn--active', !isStopwatch);
   document.getElementById('mode-btn-stopwatch')?.classList.toggle('mode-switch__btn--active', isStopwatch);
 
-  // Preset / divider visibility (Timer mode only)
+  // Preset / divider visibility (Timer mode only) — CSS handles the fade via [hidden] attribute
   const presetsSection = document.getElementById('timer-presets-section');
   const timerDivider   = document.getElementById('timer-divider');
   const customPanel    = document.getElementById('custom-duration-panel');
@@ -169,11 +233,29 @@ async function syncTimerDisplay() {
   if (timerDivider)   timerDivider.hidden   = isStopwatch;
   if (isStopwatch && customPanel) customPanel.setAttribute('hidden', 'true');
 
-  if (isStopwatch) {
-    _renderStopwatchMode(state);
+  // On mode change: briefly fade ring center out, render new content, fade back in
+  const ringCenter = document.querySelector('.timer-ring__center');
+  if (modeChanged && ringCenter) {
+    ringCenter.style.opacity = '0';
+    // Let the fade-out play (200ms matches CSS transition), then render & fade in
+    await new Promise((r) => setTimeout(r, 160));
+    if (isStopwatch) {
+      _renderStopwatchMode(state);
+    } else {
+      _renderCountdownMode(state);
+    }
+    // Force reflow so the new opacity transition starts fresh
+    void ringCenter.offsetHeight;
+    ringCenter.style.opacity = '';
   } else {
-    _renderCountdownMode(state);
+    if (isStopwatch) {
+      _renderStopwatchMode(state);
+    } else {
+      _renderCountdownMode(state);
+    }
   }
+
+  _prevTimerMode = state.timerMode;
 }
 
 // ---------------------------------------------------------------------------
@@ -194,7 +276,6 @@ function _renderStopwatchMode(state) {
   const startBtn       = document.getElementById('timerStart');
   const resetBtn       = document.getElementById('timerReset');
   const stopBtn        = document.getElementById('timerStop');
-  const crossModeBanner = document.getElementById('cross-mode-banner');
 
   // Time display
   if (timeEl) timeEl.textContent = formatRemaining(elapsedMs);
@@ -221,28 +302,43 @@ function _renderStopwatchMode(state) {
   metaRow?.setAttribute('hidden', 'true');
   swMetaRow?.removeAttribute('hidden');
 
-  // ── Button states ──
-  //  idle:   [Reset hidden] [Clock In]  [Stop hidden]
-  //  running:[Reset hidden] [Pause]     [Clock Out]
-  //  paused: [Reset hidden] [Resume]    [Clock Out]
-
-  if (resetBtn) resetBtn.hidden = true; // reset not needed in stopwatch
+  // ── Stopwatch button layout ──
+  //  idle:    [          Clock In           ]    ← single centred button
+  //  running: [  Pause  ]  [  Clock Out  ]        ← two buttons
+  //  paused:  [ Resume  ]  [  Clock Out  ]        ← two buttons
+  //
+  // Reset button is never needed in stopwatch — fully collapse it from layout.
+  if (resetBtn) {
+    resetBtn.hidden = true;
+    resetBtn.classList.remove('btn--invisible');
+  }
 
   if (status === 'idle') {
+    // ── Idle: only Clock In, no stop/finish button at all ──
     if (startBtn) {
       startBtn.hidden = false;
+      startBtn.className = 'btn btn--primary btn--timer-pill';
+      startBtn.setAttribute('data-sw-action', 'clock-in');
       startBtn.innerHTML = `
         <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
           <path d="M4.4 2.8L11.2 7L4.4 11.2V2.8Z" fill="currentColor"/>
         </svg>
         Clock In
       `;
-      startBtn.setAttribute('data-sw-action', 'clock-in');
     }
-    if (stopBtn) stopBtn.hidden = true;
+    // Force-hide stop button and strip any stale classes from countdown mode
+    if (stopBtn) {
+      stopBtn.hidden = true;
+      stopBtn.className = 'btn btn--timer-finish';
+      stopBtn.removeAttribute('data-sw-action');
+    }
+
   } else if (status === 'running') {
+    // ── Running: Pause + Clock Out ──
     if (startBtn) {
       startBtn.hidden = false;
+      startBtn.className = 'btn btn--primary btn--timer-pill';
+      startBtn.setAttribute('data-sw-action', 'pause');
       startBtn.innerHTML = `
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <rect x="3" y="2" width="3" height="10" fill="currentColor"/>
@@ -250,7 +346,6 @@ function _renderStopwatchMode(state) {
         </svg>
         Pause
       `;
-      startBtn.setAttribute('data-sw-action', 'pause');
     }
     if (stopBtn) {
       stopBtn.hidden = false;
@@ -265,16 +360,19 @@ function _renderStopwatchMode(state) {
         Clock Out
       `;
     }
+
   } else if (status === 'paused') {
+    // ── Paused: Resume + Clock Out ──
     if (startBtn) {
       startBtn.hidden = false;
+      startBtn.className = 'btn btn--primary btn--timer-pill';
+      startBtn.setAttribute('data-sw-action', 'resume');
       startBtn.innerHTML = `
         <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
           <path d="M4.4 2.8L11.2 7L4.4 11.2V2.8Z" fill="currentColor"/>
         </svg>
         Resume
       `;
-      startBtn.setAttribute('data-sw-action', 'resume');
     }
     if (stopBtn) {
       stopBtn.hidden = false;
@@ -288,18 +386,6 @@ function _renderStopwatchMode(state) {
         </svg>
         Clock Out
       `;
-    }
-  }
-
-  // Cross-mode banner: if a countdown timer is running while on stopwatch tab
-  if (crossModeBanner) {
-    const timerRunning = state.timerStatus === 'running';
-    if (timerRunning) {
-      const remaining = formatRemaining(state.timerRemainingMs || 0);
-      crossModeBanner.textContent = `⏳ A countdown timer is running (${remaining} left)`;
-      crossModeBanner.hidden = false;
-    } else {
-      crossModeBanner.hidden = true;
     }
   }
 }
@@ -322,7 +408,7 @@ function _renderCountdownMode(state) {
   const elapsedVal     = document.getElementById('timer-elapsed');
   const pctVal         = document.getElementById('timer-pct');
   const finishVal      = document.getElementById('timer-finish');
-  const crossModeBanner = document.getElementById('cross-mode-banner');
+
 
   if (modePill) modePill.classList.remove('is-running');
 
@@ -360,8 +446,11 @@ function _renderCountdownMode(state) {
 
   swMetaRow?.setAttribute('hidden', 'true');
 
-  // Show/restore all countdown buttons
-  if (resetBtn) resetBtn.hidden = false;
+  // Show/restore all countdown buttons — remove invisible class to reveal reset
+  if (resetBtn) {
+    resetBtn.hidden = false;
+    resetBtn.classList.remove('btn--invisible');
+  }
   if (stopBtn) {
     stopBtn.hidden = false;
     stopBtn.className = 'btn btn--ghost-icon';
@@ -398,19 +487,6 @@ function _renderCountdownMode(state) {
   }
 
   syncPresetChips(state);
-
-  // Cross-mode banner: if a stopwatch session is active while on timer tab
-  if (crossModeBanner) {
-    const swRunning = state.swStatus === 'running' || state.swStatus === 'paused';
-    if (swRunning) {
-      const label = state.swStatus === 'paused' ? 'paused' : 'running';
-      const elapsed = formatRemaining(state.swElapsedMs || 0);
-      crossModeBanner.textContent = `⏱ A stopwatch session is ${label} (${elapsed} elapsed)`;
-      crossModeBanner.hidden = false;
-    } else {
-      crossModeBanner.hidden = true;
-    }
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -613,64 +689,136 @@ async function refreshStopwatchTotal() {
 // TASKS PAGE
 // ---------------------------------------------------------------------------
 
+/** ID of the task currently loaded into the input for editing, or null. */
+let _editingTaskId = null;
+
 function bindTasksPage() {
   const input  = document.getElementById('task-input');
   const addBtn = document.getElementById('task-add-btn');
 
   input?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleAddTask();
+    if (e.key === 'Enter') handleAddOrUpdateTask();
+    if (e.key === 'Escape') _cancelEdit();
   });
-  addBtn?.addEventListener('click', handleAddTask);
+  addBtn?.addEventListener('click', handleAddOrUpdateTask);
+
+  // Click outside the compose bar cancels editing
+  document.addEventListener('click', (e) => {
+    if (!_editingTaskId) return;
+    const compose = document.querySelector('.task-compose');
+    if (compose && !compose.contains(e.target)) {
+      _cancelEdit();
+    }
+  });
 }
 
-async function handleAddTask() {
+function _cancelEdit() {
+  if (!_editingTaskId) return;
+  _editingTaskId = null;
+  const input  = document.getElementById('task-input');
+  const addBtn = document.getElementById('task-add-btn');
+  if (input) { input.value = ''; input.placeholder = 'Add a new task...'; }
+  if (addBtn) {
+    addBtn.textContent = 'Add';
+    addBtn.className = 'btn btn--primary btn--sm';
+  }
+  // Remove any editing highlight
+  document.querySelectorAll('.task-row--editing').forEach((el) => el.classList.remove('task-row--editing'));
+}
+
+async function handleAddOrUpdateTask() {
   const input = document.getElementById('task-input');
   const title = input?.value.trim();
   if (!title) return;
 
-  await chrome.runtime.sendMessage({ type: 'TASK_ADD', task: { title } });
-  input.value = '';
-  input.focus();
+  if (_editingTaskId) {
+    // UPDATE existing task
+    await chrome.runtime.sendMessage({ type: 'TASK_UPDATE', id: _editingTaskId, updates: { title } });
+    _cancelEdit();
+  } else {
+    // ADD new task
+    await chrome.runtime.sendMessage({ type: 'TASK_ADD', task: { title } });
+    if (input) input.value = '';
+    input?.focus();
+  }
   renderTaskList();
 }
 
+/** @deprecated kept for backward compat if called elsewhere */
+async function handleAddTask() {
+  return handleAddOrUpdateTask();
+}
+
+/** Returns midnight (start of day) timestamp for a given ms timestamp */
+function _startOfDay(ms) {
+  const d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
 async function renderTaskList() {
-  const activeListEl     = document.getElementById('tasks-active');
-  const completedListEl  = document.getElementById('tasks-completed');
-  const activeEmptyEl    = document.getElementById('active-empty');
-  const activeCountEl    = document.getElementById('active-count');
+  const todayListEl    = document.getElementById('tasks-today');
+  const overdueListEl  = document.getElementById('tasks-overdue');
+  const completedListEl = document.getElementById('tasks-completed');
+  const todayCountEl   = document.getElementById('today-count');
+  const overdueCountEl = document.getElementById('overdue-count');
   const completedCountEl = document.getElementById('completed-count');
+  const sectionToday    = document.getElementById('section-today');
+  const sectionOverdue  = document.getElementById('section-overdue');
   const sectionCompleted = document.getElementById('section-completed');
-  if (!activeListEl || !completedListEl) return;
+  if (!todayListEl || !completedListEl) return;
 
-  const allTasks = await getTasks();
-  const active    = allTasks.filter((t) => !t.completed);
-  const completed = allTasks.filter((t) =>  t.completed);
+  const allTasks   = await getTasks();
+  const todayStart = _startOfDay(Date.now());
 
-  if (activeCountEl)    activeCountEl.textContent    = active.length > 0 ? active.length : '';
-  if (completedCountEl) completedCountEl.textContent = completed.length > 0 ? completed.length : '';
+  // TODAY: created today, not yet completed
+  const todayTasks = allTasks.filter(
+    (t) => !t.completed && _startOfDay(t.createdAt) === todayStart
+  );
 
-  if (active.length === 0) {
-    activeListEl.innerHTML = '';
-    activeEmptyEl?.removeAttribute('hidden');
-  } else {
-    activeEmptyEl?.setAttribute('hidden', 'true');
-    activeListEl.innerHTML = '';
-    active.forEach((t) => activeListEl.appendChild(buildTaskRow(t)));
+  // PENDING / OVERDUE: created before today, not yet completed
+  const overdueTasks = allTasks.filter(
+    (t) => !t.completed && _startOfDay(t.createdAt) < todayStart
+  );
+
+  // COMPLETED: finished today only (older ones disappear automatically)
+  const completedToday = allTasks.filter(
+    (t) => t.completed && t.completedAt && _startOfDay(t.completedAt) === todayStart
+  );
+
+  // Update count badges
+  if (todayCountEl)     todayCountEl.textContent     = todayTasks.length > 0 ? todayTasks.length : '';
+  if (overdueCountEl)   overdueCountEl.textContent   = overdueTasks.length > 0 ? overdueTasks.length : '';
+  if (completedCountEl) completedCountEl.textContent = completedToday.length > 0 ? completedToday.length : '';
+
+  // Always reset lists before appending
+  todayListEl.innerHTML = '';
+  if (overdueListEl) overdueListEl.innerHTML = '';
+  completedListEl.innerHTML = '';
+
+  // Render TODAY list
+  todayTasks.forEach((t) => todayListEl.appendChild(buildTaskRow(t, false)));
+
+  // Render OVERDUE list (show section only when there are overdue tasks)
+  if (sectionOverdue) {
+    sectionOverdue.hidden = overdueTasks.length === 0;
+  }
+  if (overdueListEl && overdueTasks.length > 0) {
+    overdueTasks.forEach((t) => overdueListEl.appendChild(buildTaskRow(t, true)));
   }
 
-  if (completed.length === 0) {
-    if (sectionCompleted) sectionCompleted.hidden = true;
-  } else {
-    if (sectionCompleted) sectionCompleted.hidden = false;
-    completedListEl.innerHTML = '';
-    completed.forEach((t) => completedListEl.appendChild(buildTaskRow(t)));
+  // Render COMPLETED list (show section only when completed today)
+  if (sectionCompleted) {
+    sectionCompleted.hidden = completedToday.length === 0;
+  }
+  if (completedToday.length > 0) {
+    completedToday.forEach((t) => completedListEl.appendChild(buildTaskRow(t, false)));
   }
 }
 
-function buildTaskRow(task) {
+function buildTaskRow(task, isOverdue = false) {
   const li = document.createElement('li');
-  li.className = `task-row${task.completed ? ' task-row--done' : ''}`;
+  li.className = `task-row${task.completed ? ' task-row--done' : ''}${isOverdue ? ' task-row--overdue' : ''}`;
   li.dataset.id = task.id;
 
   const checkbox = document.createElement('span');
@@ -688,33 +836,68 @@ function buildTaskRow(task) {
   }
 
   const toggleComplete = async () => {
-    await chrome.runtime.sendMessage({ type: 'TASK_COMPLETE', id: task.id, completed: !task.completed });
-    renderTaskList();
+    if (task.completed) {
+      // Uncompleting: reset createdAt to today so the task re-appears in TODAY section
+      await chrome.runtime.sendMessage({
+        type: 'TASK_UPDATE',
+        id: task.id,
+        updates: { completed: false, completedAt: null, createdAt: Date.now() },
+      });
+    } else {
+      // Completing normally
+      await chrome.runtime.sendMessage({ type: 'TASK_COMPLETE', id: task.id, completed: true });
+    }
+    await renderTaskList();
   };
   checkbox.addEventListener('click',   (e) => { e.stopPropagation(); toggleComplete(); });
   checkbox.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleComplete(); } });
 
-  const body  = document.createElement('div');
+  const body = document.createElement('div');
   body.className = 'task-row__body';
 
   const title = document.createElement('span');
   title.className = 'task-row__title';
   title.textContent = task.title;
-
   body.appendChild(title);
 
+  // Click on task title loads it into the input for editing (incomplete tasks only)
+  if (!task.completed) {
+    body.style.cursor = 'pointer';
+    body.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const input  = document.getElementById('task-input');
+      const addBtn = document.getElementById('task-add-btn');
+      document.querySelectorAll('.task-row--editing').forEach((el) => el.classList.remove('task-row--editing'));
+      _editingTaskId = task.id;
+      if (input) { input.value = task.title; input.placeholder = 'Edit task...'; input.focus(); input.select(); }
+      if (addBtn) { addBtn.textContent = 'Update'; addBtn.className = 'btn btn--update btn--sm'; }
+      li.classList.add('task-row--editing');
+    });
+  }
+
+  // Delete button — works for ALL tasks including completed
   const delBtn = document.createElement('button');
-  delBtn.className = 'task-row__delete';
+  delBtn.className = `task-row__delete${task.completed ? ' task-row__delete--visible' : ''}`;
   delBtn.setAttribute('aria-label', 'Delete task');
+  delBtn.setAttribute('type', 'button');
   delBtn.innerHTML = `
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
       <path d="M3 3.5L11 10.5M11 3.5L3 10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
     </svg>
   `;
-  delBtn.addEventListener('click', async (e) => {
+  // Use mousedown instead of click so it fires before any blur/focus events
+  delBtn.addEventListener('mousedown', (e) => {
+    e.preventDefault();  // prevent focus change
     e.stopPropagation();
+  });
+  delBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (_editingTaskId === task.id) _cancelEdit();
+    li.style.opacity = '0';
+    li.style.transition = 'opacity 0.18s ease';
     await chrome.runtime.sendMessage({ type: 'TASK_DELETE', id: task.id });
-    renderTaskList();
+    await renderTaskList();
   });
 
   li.appendChild(checkbox);

@@ -73,6 +73,7 @@
     <!-- ---- Topbar ---- -->
     <header class="topbar">
       <h2 class="topbar__title" id="topbar-title">Study Timer</h2>
+      <div class="month-nav" id="month-nav" aria-label="Year Progress Navigation"></div>
       <span class="topbar__date" id="topbar-date"></span>
     </header>
 
@@ -81,15 +82,11 @@
     <!-- ======================================================= -->
     <main class="page" id="page-timer">
       <div class="timer-page">
-
         <!-- Segmented Mode Switch -->
         <div class="mode-switch">
           <button class="mode-switch__btn mode-switch__btn--active" data-mode="countdown" id="mode-btn-timer">Timer</button>
           <button class="mode-switch__btn" data-mode="stopwatch" id="mode-btn-stopwatch">Stopwatch</button>
         </div>
-
-        <!-- Cross-mode banner: shown when another session is active in the other mode -->
-        <div class="cross-mode-banner" id="cross-mode-banner" hidden></div>
 
         <!-- Timer Centerpiece -->
         <!--
@@ -144,9 +141,8 @@
             Start
           </button>
 
-          <!-- Initially styled as Finish pill; JS may switch to btn--ghost-icon (countdown stop icon)
-               or btn--danger (stopwatch clock-out) -->
-          <button class="btn btn--timer-finish" id="timerStop" aria-label="Stop" title="Stop session">
+          <!-- Initially hidden — JS sets correct label/style based on mode and status -->
+          <button class="btn btn--timer-finish" id="timerStop" aria-label="Stop" title="Stop session" hidden>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
               <rect x="3" y="3" width="8" height="8" rx="1.6" fill="currentColor"/>
             </svg>
@@ -270,23 +266,23 @@
           </div>
         </div>
 
-        <!-- Active tasks section -->
-        <section class="tasks-section" id="section-active">
+        <!-- TODAY tasks section -->
+        <section class="tasks-section" id="section-today">
           <h2 class="tasks-section__heading">
-            Today <span class="tasks-section__count" id="active-count"></span>
+            Today <span class="tasks-section__count" id="today-count"></span>
           </h2>
-          <ul class="tasks-list" id="tasks-active" aria-label="Active tasks"></ul>
-          <div class="tasks-empty" id="active-empty" hidden>
-            <svg width="36" height="36" viewBox="0 0 40 40" fill="none">
-              <rect x="4" y="4" width="32" height="32" rx="8" stroke="var(--color-border-strong)" stroke-width="1.5"/>
-              <path d="M13 20.5L17.5 25L27 15" stroke="var(--color-text-tertiary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <p class="tasks-empty__title">All caught up!</p>
-            <p class="tasks-empty__sub text-faint">Add a task above to get started</p>
-          </div>
+          <ul class="tasks-list" id="tasks-today" aria-label="Today's tasks"></ul>
         </section>
 
-        <!-- Completed tasks section -->
+        <!-- PENDING / OVERDUE tasks section -->
+        <section class="tasks-section" id="section-overdue" hidden>
+          <h2 class="tasks-section__heading tasks-section__heading--overdue">
+            Pending / Overdue <span class="tasks-section__count tasks-section__count--overdue" id="overdue-count"></span>
+          </h2>
+          <ul class="tasks-list" id="tasks-overdue" aria-label="Pending and overdue tasks"></ul>
+        </section>
+
+        <!-- COMPLETED tasks section (today's completions only) -->
         <section class="tasks-section" id="section-completed" hidden>
           <h2 class="tasks-section__heading">
             Completed <span class="tasks-section__count" id="completed-count"></span>

@@ -160,11 +160,90 @@
   color: var(--color-text-secondary);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  z-index: 2;
 }
 
 .topbar__date {
   font-size: var(--font-size-sm);
   color: var(--color-text-tertiary);
+  z-index: 2;
+}
+
+/* ── Month Navigator (Year Progress) ── */
+.month-nav {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  max-width: calc(100% - 320px);
+  padding: 0 var(--spacing-sm);
+  user-select: none;
+  z-index: 1;
+}
+
+.month-nav__track {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: auto;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0 4px;
+}
+
+.month-nav__track::-webkit-scrollbar {
+  display: none;
+}
+
+.month-nav__indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-primary);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  line-height: 1;
+}
+
+.month-nav__list {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2.2vw, 22px);
+  list-style: none;
+  margin: 0;
+  padding: 10px 0 0 0;
+}
+
+.month-nav__item {
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  transition: color 0.25s ease;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.month-nav__item:hover {
+  color: var(--color-text-secondary);
+}
+
+.month-nav__item--active {
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 /* ================================================================
@@ -225,8 +304,9 @@
   font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--color-text-secondary);
-  transition: background var(--transition-fast), color var(--transition-fast),
-              box-shadow var(--transition-fast);
+  transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .mode-switch__btn:hover {
@@ -239,7 +319,7 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* ── Cross-mode banner ── */
+/* ── Cross-mode banner — always occupies space; fades in/out ── */
 .cross-mode-banner {
   width: 100%;
   max-width: 520px;
@@ -252,6 +332,15 @@
   font-size: var(--font-size-xs);
   text-align: center;
   font-weight: 500;
+  /* Never collapses — uses visibility instead of display:none */
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.cross-mode-banner:not([hidden]) {
+  visibility: visible;
+  opacity: 1;
 }
 
 /* ── Timer Ring ── */
@@ -261,6 +350,8 @@
   flex-direction: column;
   align-items: center;
   margin-bottom: var(--spacing-xl);
+  /* Stable height prevents shift when cross-mode banner appears */
+  flex-shrink: 0;
 }
 
 .timer-ring {
@@ -280,21 +371,30 @@
 
 .timer-ring__center {
   position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-sm);
+  /* Smooth content transition when switching modes */
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
 }
 
 /* Large display time — Inter Light for elegance */
 .timer-ring__time {
-  font-size: var(--font-size-timer);
+  font-size: clamp(2.6rem, 8vw, 4.2rem);
   font-weight: 300;
   letter-spacing: -0.03em;
   color: var(--color-text);
   line-height: 1;
   font-family: var(--font-family);
   font-variant-numeric: tabular-nums;
+  /* No max-width constraint — let the element expand to fit and trust
+     translate(-50%, -50%) on the parent to center by actual width */
+  text-align: center;
 }
 
 .timer-ring__label {
@@ -348,6 +448,7 @@
 .timer-card__controls {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-xl);
   margin-bottom: var(--spacing-lg);
 }
@@ -411,6 +512,12 @@
   color: var(--color-text-secondary);
 }
 
+/* Layout-preserving invisible state — element stays in flow but is not visible/interactive */
+.btn--invisible {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 /* Danger button — used by JS for stopwatch clock-out */
 .btn--danger {
   display: inline-flex;
@@ -432,7 +539,7 @@
   background: rgba(255, 180, 171, 0.25);
 }
 
-/* ── Timer Meta Rows ── */
+/* ── Timer Meta Rows — ALWAYS occupy space; crossfade via opacity ── */
 .timer-meta {
   display: flex;
   align-items: center;
@@ -445,6 +552,20 @@
   background-color: var(--color-card-elevated);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
+  /* Never collapses layout — transitions instead */
+  transition: opacity 0.25s ease;
+}
+
+/* When JS sets hidden attribute we fade it out but keep layout space */
+.timer-meta[hidden] {
+  display: flex !important;  /* override browser default hidden=display:none */
+  opacity: 0;
+  pointer-events: none;
+}
+
+.timer-meta:not([hidden]) {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .timer-meta__item {
@@ -480,20 +601,40 @@
   text-align: center;
 }
 
-/* ── Divider ── */
+/* ── Divider — fades out in stopwatch mode ── */
 .divider {
   width: 100%;
   max-width: 520px;
   height: 1px;
   background-color: var(--color-border);
   margin: var(--spacing-md) 0;
+  transition: opacity 0.25s ease;
 }
+
+[id="timer-divider"][hidden] {
+  display: block !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Presets section — fades out in stopwatch mode ── */
+#timer-presets-section[hidden] {
+  display: block !important;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+#timer-presets-section {
+  transition: opacity 0.25s ease;
+}
+
 
 /* ── Duration Preset Chips ── */
 .timer-card__presets {
   width: 100%;
   max-width: 520px;
-  text-align: left;
+  text-align: center;
 }
 
 .timer-card__presets-label {
@@ -505,6 +646,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
+  justify-content: center;
 }
 
 .chip {
@@ -689,6 +831,10 @@
   gap: var(--spacing-md);
 }
 
+.tasks-section[hidden] {
+  display: none !important;
+}
+
 .tasks-section__heading {
   font-size: var(--font-size-xs);
   font-weight: 600;
@@ -838,7 +984,34 @@
   background: var(--color-danger-muted);
 }
 
-/* Empty state */
+/* Overdue / Pending section heading — warm amber accent */
+.tasks-section__heading--overdue {
+  color: rgba(255, 190, 100, 0.85);
+}
+
+.tasks-section__count--overdue {
+  background: rgba(255, 190, 100, 0.12);
+  border-color: rgba(255, 190, 100, 0.3);
+  color: rgba(255, 190, 100, 0.9);
+}
+
+/* Overdue task row — very subtle left-border indicator */
+.task-row--overdue {
+  border-left: 2px solid rgba(255, 190, 100, 0.35);
+  padding-left: calc(var(--spacing-sm) - 2px);
+}
+
+/* Delete button — always slightly visible on completed tasks for discoverability */
+.task-row__delete--visible {
+  opacity: 0.55 !important;
+}
+
+.task-row__delete--visible:hover {
+  opacity: 1 !important;
+  color: var(--color-danger);
+  background: var(--color-danger-muted);
+}
+
 .tasks-empty {
   display: flex;
   flex-direction: column;
@@ -855,6 +1028,24 @@
 
 .tasks-empty__sub {
   font-size: var(--font-size-sm);
+}
+
+/* Task row — editing highlight */
+.task-row--editing {
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  outline: 1px solid rgba(255, 180, 165, 0.35);
+}
+
+/* Update button — shown when editing an existing task */
+.btn--update {
+  background: rgba(255, 180, 165, 0.18);
+  border: 1px solid rgba(255, 180, 165, 0.4);
+  color: var(--color-primary);
+}
+
+.btn--update:hover {
+  background: rgba(255, 180, 165, 0.3);
 }
 
 /* ================================================================
