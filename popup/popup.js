@@ -191,14 +191,12 @@ function updateGreeting(settings, report, streak) {
 function updateStats(report) {
   const timeEl = document.getElementById('stat-study-time');
   const sessionsEl = document.getElementById('stat-sessions');
-  const scoreEl = document.getElementById('stat-focus-score');
 
   if (report) {
     const hours = Math.floor(report.totalStudyTimeMinutes / 60);
     const mins = report.totalStudyTimeMinutes % 60;
     if (timeEl) timeEl.textContent = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
     if (sessionsEl) sessionsEl.textContent = report.pomodoroCount ?? 0;
-    if (scoreEl) scoreEl.textContent = report.focusScore ?? 80;
   }
 }
 

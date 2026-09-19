@@ -155,8 +155,8 @@ function populateUI(settings) {
   _setVal('input-daily-goal', settings.dailyGoalMinutes ?? 480);
 
   // Motivation
-  _setVal('select-motivation-interval', settings.motivationInterval ?? 30);
-  _setVal('select-motivation-category', settings.motivationCategory ?? 'discipline');
+  _setVal('select-motivation-interval', settings.motivationInterval ?? 45);
+  _setVal('select-motivation-category', settings.motivationCategory ?? 'all');
 
   // Websites
   renderChipList('allowed-chip-list', _siteLists.allowedWebsites, 'allowed');

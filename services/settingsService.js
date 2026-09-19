@@ -50,8 +50,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   username: 'Student',
 
   // Motivation
-  motivationInterval: 30,      // minutes between motivation notifications
-  motivationCategory: 'discipline',
+  motivationInterval: 45,      // minutes between motivation notifications
+  motivationCategory: 'all',
   useAiMotivation: false,
 
   // Websites

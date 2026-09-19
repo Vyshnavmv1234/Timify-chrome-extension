@@ -24,11 +24,12 @@ const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "F
 /**
  * @typedef {Object} SessionRecord
  * @property {string} id - Unique identifier
+ * @property {'stopwatch'|'timer'} [mode] - Session mode (new records only)
  * @property {'focus'|'break'} type - Session type
  * @property {number} startTime - Start timestamp in ms
  * @property {number} endTime - End timestamp in ms
- * @property {number} durationMs - Actual duration completed in ms
- * @property {boolean} completed - Whether the session completed successfully
+ * @property {number} durationMs - Actual study duration in ms (excludes paused time)
+ * @property {boolean} completed - Must be true; active sessions are never persisted here
  */
 
 /**
@@ -86,11 +87,21 @@ function getEndOfMonth(date) {
  * @returns {Promise<SessionRecord>} Persisted session record.
  */
 export async function recordSession(session) {
+  // Safety: never record incomplete or malformed sessions
+  if (!session || !session.completed) {
+    console.warn('[reportService] recordSession: skipping non-completed session', session);
+    return session;
+  }
+  if (typeof session.durationMs !== 'number' || session.durationMs < 0) {
+    console.warn('[reportService] recordSession: skipping session with invalid durationMs', session);
+    return session;
+  }
+
   const data = await _getReportData();
-  
+
   const newSession = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-    ...session
+    ...session,
   };
 
   data.sessions.push(newSession);
@@ -133,10 +144,16 @@ export async function generateReport(startDate, endDate) {
   const reportData = await _getReportData();
   const tasks = await getTasks();
 
-  // Filter records in range
-  const rangeSessions = reportData.sessions.filter(
-    (s) => s.startTime >= startMs && s.endTime <= endMs && s.type === 'focus' && s.completed
-  );
+  // Filter completed focus sessions whose START time falls in the range.
+  // Using startTime (not endTime) ensures a session belongs to the day it began.
+  // Defensive: skip malformed records that lack required fields.
+  const rangeSessions = reportData.sessions.filter((s) => {
+    if (!s || !s.completed) return false;                    // active/incomplete
+    if (s.type !== 'focus') return false;                    // breaks don't count
+    if (typeof s.startTime !== 'number') return false;       // malformed
+    if (typeof s.durationMs !== 'number' || s.durationMs < 0) return false; // malformed
+    return s.startTime >= startMs && s.startTime <= endMs;
+  });
 
   const rangeDistractions = reportData.distractions.filter(
     (d) => d.timestamp >= startMs && d.timestamp <= endMs
@@ -281,7 +298,11 @@ export function getDefaultDateRange() {
  */
 export async function getRecentSessions(limit = 4) {
   const data = await _getReportData();
-  return data.sessions.sort((a, b) => b.startTime - a.startTime).slice(0, limit);
+  // Only show completed sessions; sort newest first
+  return data.sessions
+    .filter((s) => s && s.completed)
+    .sort((a, b) => b.startTime - a.startTime)
+    .slice(0, limit);
 }
 
 /**

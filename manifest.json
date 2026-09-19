@@ -33,8 +33,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content/content.js"],
-      "type": "module",
+      "js": ["content/motivationHud.js", "content/content.js"],
       "run_at": "document_idle"
     }
   ]

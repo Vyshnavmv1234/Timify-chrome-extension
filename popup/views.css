@@ -20,7 +20,7 @@
   font-size: var(--font-size-2xl);
   font-weight: 700;
   letter-spacing: -0.03em;
-  background: linear-gradient(135deg, #ffffff 0%, #a0a4ab 100%);
+  background: linear-gradient(135deg, #f3deda 0%, #a58b85 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -149,7 +149,7 @@
 .quick-timers .btn--ghost.is-active {
   background: var(--color-primary-muted);
   color: var(--color-primary);
-  border-color: rgba(79, 140, 255, 0.35);
+  border-color: rgba(255, 180, 165, 0.3);
 }
 
 .preset-group__buttons .btn--pill:not(.is-active) {

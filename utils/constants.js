@@ -9,10 +9,17 @@
 /** @type {Readonly<Record<string, string>>} */
 export const STORAGE_KEYS = Object.freeze({
   TASKS: 'timify_tasks',
+  /** @deprecated Use ACTIVE_TIMER + ACTIVE_STOPWATCH + TIMER_PREFS instead */
   TIMER_STATE: 'timify_timer_state',
   SETTINGS: 'timify_settings',
   REPORTS: 'timify_reports',
   DISTRACTION_LIST: 'timify_distraction_list',
+  /** Active countdown-timer session (independent of stopwatch) */
+  ACTIVE_TIMER: 'timify_active_timer',
+  /** Active stopwatch session (independent of timer) */
+  ACTIVE_STOPWATCH: 'timify_active_stopwatch',
+  /** UI preferences: focusMinutes, breakMinutes, current mode tab */
+  TIMER_PREFS: 'timify_timer_prefs',
 });
 
 /** @type {Readonly<{ focusMinutes: number; breakMinutes: number; status: string }>} */

@@ -3,9 +3,15 @@
  *
  * Three-page SPA for Timify: Study Timer, Tasks, Reports.
  * Holds zero business logic; delegates entirely to the service layer.
+ *
+ * Key invariants:
+ *   - getTimerState() is the single source of display truth (calls background)
+ *   - One setInterval drives ALL display updates; no duplicate intervals
+ *   - Clock In / Clock Out sends CLOCK_IN / CLOCK_OUT to background
+ *   - SESSION_COMPLETED triggers immediate Reports refresh
  */
 
-import { getTimerState, formatRemaining } from '../services/timerService.js';
+import { formatRemaining } from '../services/timerService.js';
 import { getTasks } from '../services/taskService.js';
 import {
   generateDailyReport,
@@ -15,14 +21,22 @@ import {
   getChartData,
 } from '../services/reportService.js';
 
-// --- Module-level state ---
-let timerTickInterval = null;
+// ---------------------------------------------------------------------------
+// Module-level state
+// ---------------------------------------------------------------------------
+
+/** Exactly ONE interval drives all display updates. */
+let _timerTickInterval = null;
+
 let currentPage = 'timer';
 let currentReportPeriod = 'daily';
 
-// ============================================================
+/** Track mode to detect switches and animate the ring center crossfade. */
+let _prevTimerMode = null;
+
+// ---------------------------------------------------------------------------
 // INIT
-// ============================================================
+// ---------------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', () => {
   initDashboard().catch((err) => {
@@ -32,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function initDashboard() {
   updateTopbarDate();
+  renderMonthNavigator();
+  window.addEventListener('resize', _updateMonthIndicatorPosition);
   bindNavigation();
   bindModeSwitch();
   bindTimerControls();
@@ -39,33 +55,43 @@ async function initDashboard() {
   bindCustomDurationInput();
   bindTasksPage();
   bindReportsPage();
-  startTimerSync();
+  _startTimerSync(); // starts exactly one interval
   showPage('timer');
 
   // Keep UI in sync with background events
   chrome.runtime.onMessage.addListener((message) => {
-    const syncTypes = ['TIMER_STATE_CHANGED', 'TIMER_FINISHED', 'TASK_UPDATE', 'DATA_RESET'];
-    if (!syncTypes.includes(message?.type)) return;
+    switch (message?.type) {
+      case 'TIMER_STATE_CHANGED':
+      case 'TIMER_FINISHED':
+      case 'DATA_RESET':
+        syncTimerDisplay();
+        break;
 
-    syncTimerDisplay();
+      case 'SESSION_COMPLETED':
+        // A session was just recorded — refresh timer display and reports immediately
+        syncTimerDisplay();
+        refreshStopwatchTotal();
+        if (currentPage === 'reports') loadReportsData();
+        break;
 
-    // Refresh stopwatch today-total whenever a session ends
-    if (message?.type === 'TIMER_FINISHED') {
-      refreshStopwatchTotal();
+      case 'TASK_UPDATE':
+        if (currentPage === 'tasks') renderTaskList();
+        if (currentPage === 'reports') loadReportsData();
+        break;
+
+      default:
+        break;
     }
-
-    if (currentPage === 'tasks') renderTaskList();
-    if (currentPage === 'reports') loadReportsData();
   });
 }
 
-// ============================================================
+// ---------------------------------------------------------------------------
 // NAVIGATION & PAGE SWITCHING
-// ============================================================
+// ---------------------------------------------------------------------------
 
 const PAGE_TITLES = {
-  timer:   'Study Timer',
-  tasks:   'Tasks',
+  timer: 'Study Timer',
+  tasks: 'Tasks',
   reports: 'Reports',
 };
 
@@ -82,25 +108,24 @@ function bindNavigation() {
 function showPage(name) {
   currentPage = name;
 
-  // Update nav active state
   document.querySelectorAll('.nav-item').forEach((btn) => {
     btn.classList.toggle('nav-item--active', btn.dataset.nav === name);
   });
 
-  // Switch page visibility
   document.querySelectorAll('.page').forEach((el) => {
     el.classList.add('page--hidden');
   });
   const target = document.getElementById(`page-${name}`);
   if (target) target.classList.remove('page--hidden');
 
-  // Update topbar title
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = PAGE_TITLES[name] || name;
 
-  // Load page data on switch
-  if (name === 'tasks')   renderTaskList();
+  if (name === 'tasks') renderTaskList();
   if (name === 'reports') loadReportsData();
+  if (name === 'timer') syncTimerDisplay();
+
+  requestAnimationFrame(_updateMonthIndicatorPosition);
 }
 
 function updateTopbarDate() {
@@ -108,127 +133,340 @@ function updateTopbarDate() {
   if (!el) return;
   const opts = { weekday: 'short', month: 'short', day: 'numeric' };
   el.textContent = new Date().toLocaleDateString('en-US', opts);
+
+  // If month has rolled over, re-render navigator
+  if (_currentRenderedMonth !== null && _currentRenderedMonth !== new Date().getMonth()) {
+    renderMonthNavigator();
+  }
 }
 
-// ============================================================
-// STUDY TIMER PAGE
-// ============================================================
+// ---------------------------------------------------------------------------
+// YEAR PROGRESS MONTH NAVIGATOR
+// ---------------------------------------------------------------------------
 
-function startTimerSync() {
-  if (timerTickInterval) clearInterval(timerTickInterval);
+const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+let _currentRenderedMonth = null;
+
+function renderMonthNavigator() {
+  const container = document.getElementById('month-nav');
+  if (!container) return;
+
+  const currentMonthIdx = new Date().getMonth();
+  _currentRenderedMonth = currentMonthIdx;
+
+  container.innerHTML = `
+    <div class="month-nav__track">
+      <div class="month-nav__indicator" id="month-nav-indicator" aria-hidden="true">
+        <svg width="8" height="6" viewBox="0 0 8 6" fill="currentColor">
+          <path d="M4 6L0.535898 0.75L7.4641 0.75L4 6Z"/>
+        </svg>
+      </div>
+      <ul class="month-nav__list" role="list">
+        ${MONTH_NAMES.map((m, idx) => `
+          <li class="month-nav__item${idx === currentMonthIdx ? ' month-nav__item--active' : ''}" data-month="${idx}">
+            ${m}
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+  `;
+
+  requestAnimationFrame(() => {
+    _updateMonthIndicatorPosition();
+  });
+}
+
+function _updateMonthIndicatorPosition() {
+  const activeItem = document.querySelector('.month-nav__item--active');
+  const indicator = document.getElementById('month-nav-indicator');
+  const track = document.querySelector('.month-nav__track');
+  if (!activeItem || !indicator || !track) return;
+
+  const activeRect = activeItem.getBoundingClientRect();
+  const trackRect = track.getBoundingClientRect();
+  if (trackRect.width === 0) return;
+
+  const relativeLeft = (activeRect.left - trackRect.left) + (activeRect.width / 2);
+  indicator.style.transform = `translateX(${relativeLeft}px) translateX(-50%)`;
+  indicator.style.opacity = '1';
+}
+
+// ---------------------------------------------------------------------------
+// TIMER SYNC — single interval, safe to call multiple times
+// ---------------------------------------------------------------------------
+
+function _startTimerSync() {
+  if (_timerTickInterval) {
+    clearInterval(_timerTickInterval);
+    _timerTickInterval = null;
+  }
   syncTimerDisplay();
-  timerTickInterval = setInterval(syncTimerDisplay, 1000);
+  _timerTickInterval = setInterval(syncTimerDisplay, 1000);
 }
 
 /**
- * Master display sync — called every second and on every background message.
- * Routes to countdown-specific or stopwatch-specific rendering based on timerMode.
+ * Fetches current unified state from background and routes to the correct renderer.
+ * This is the only function allowed to touch the timer DOM.
  */
 async function syncTimerDisplay() {
-  const state = await getTimerState();
-  const isStopwatch = state.timerMode === 'stopwatch';
+  let state;
+  try {
+    state = await chrome.runtime.sendMessage({ type: 'GET_STATE' });
+  } catch (err) {
+    // Background may be restarting; skip this tick
+    return;
+  }
+  if (!state) return;
 
-  // ── Mode switch button highlight ──
+  const isStopwatch = state.timerMode === 'stopwatch';
+  const modeChanged = _prevTimerMode !== null && _prevTimerMode !== state.timerMode;
+
+  // Mode button highlight
   document.getElementById('mode-btn-timer')?.classList.toggle('mode-switch__btn--active', !isStopwatch);
   document.getElementById('mode-btn-stopwatch')?.classList.toggle('mode-switch__btn--active', isStopwatch);
 
-  // ── Preset / divider visibility (Timer mode only) ──
-  const presetsSection  = document.getElementById('timer-presets-section');
-  const timerDivider    = document.getElementById('timer-divider');
-  const customPanel     = document.getElementById('custom-duration-panel');
+  // Preset / divider visibility (Timer mode only) — CSS handles the fade via [hidden] attribute
+  const presetsSection = document.getElementById('timer-presets-section');
+  const timerDivider   = document.getElementById('timer-divider');
+  const customPanel    = document.getElementById('custom-duration-panel');
   if (presetsSection) presetsSection.hidden = isStopwatch;
   if (timerDivider)   timerDivider.hidden   = isStopwatch;
   if (isStopwatch && customPanel) customPanel.setAttribute('hidden', 'true');
 
-  // ── Shared elements ──
+  // On mode change: briefly fade ring center out, render new content, fade back in
+  const ringCenter = document.querySelector('.timer-ring__center');
+  if (modeChanged && ringCenter) {
+    ringCenter.style.opacity = '0';
+    // Let the fade-out play (200ms matches CSS transition), then render & fade in
+    await new Promise((r) => setTimeout(r, 160));
+    if (isStopwatch) {
+      _renderStopwatchMode(state);
+    } else {
+      _renderCountdownMode(state);
+    }
+    // Force reflow so the new opacity transition starts fresh
+    void ringCenter.offsetHeight;
+    ringCenter.style.opacity = '';
+  } else {
+    if (isStopwatch) {
+      _renderStopwatchMode(state);
+    } else {
+      _renderCountdownMode(state);
+    }
+  }
+
+  _prevTimerMode = state.timerMode;
+}
+
+// ---------------------------------------------------------------------------
+// STOPWATCH RENDERER
+// ---------------------------------------------------------------------------
+
+function _renderStopwatchMode(state) {
+  const elapsedMs      = state.remainingMs || 0; // shim: remainingMs = elapsed for stopwatch
+  const status         = state.status;            // 'idle' | 'running' | 'paused'
+
+  const timeEl         = document.getElementById('timer-display');
+  const labelEl        = document.getElementById('timer-session-label');
+  const progressCircle = document.querySelector('.timer-ring__progress');
+  const modeLabelEl    = document.getElementById('timer-mode-label');
+  const modePill       = document.getElementById('timer-mode-pill');
+  const metaRow        = document.getElementById('timer-meta');
+  const swMetaRow      = document.getElementById('stopwatch-meta');
+  const startBtn       = document.getElementById('timerStart');
+  const resetBtn       = document.getElementById('timerReset');
+  const stopBtn        = document.getElementById('timerStop');
+
+  // Time display
+  if (timeEl) timeEl.textContent = formatRemaining(elapsedMs);
+
+  // Session label
+  if (labelEl) {
+    if (status === 'running') labelEl.textContent = 'Session in progress…';
+    else if (status === 'paused') labelEl.textContent = 'Session paused';
+    else labelEl.textContent = 'Stopwatch';
+  }
+
+  // Mode pill
+  if (modeLabelEl) modeLabelEl.textContent = status === 'running' ? 'Recording' : 'Stopwatch';
+  if (modePill) modePill.classList.toggle('is-running', status === 'running');
+
+  // Progress ring — fill as elapsed grows (1-hour reference circle)
+  if (progressCircle) {
+    const refMs = 60 * 60 * 1000;
+    const pct   = Math.min(elapsedMs / refMs, 1);
+    progressCircle.style.strokeDashoffset = 616 * (1 - pct);
+  }
+
+  // Meta rows
+  metaRow?.setAttribute('hidden', 'true');
+  swMetaRow?.removeAttribute('hidden');
+
+  // ── Stopwatch button layout ──
+  //  idle:    [          Clock In           ]    ← single centred button
+  //  running: [  Pause  ]  [  Clock Out  ]        ← two buttons
+  //  paused:  [ Resume  ]  [  Clock Out  ]        ← two buttons
+  //
+  // Reset button is never needed in stopwatch — fully collapse it from layout.
+  if (resetBtn) {
+    resetBtn.hidden = true;
+    resetBtn.classList.remove('btn--invisible');
+  }
+
+  if (status === 'idle') {
+    // ── Idle: only Clock In, no stop/finish button at all ──
+    if (startBtn) {
+      startBtn.hidden = false;
+      startBtn.className = 'btn btn--primary btn--timer-pill';
+      startBtn.setAttribute('data-sw-action', 'clock-in');
+      startBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
+          <path d="M4.4 2.8L11.2 7L4.4 11.2V2.8Z" fill="currentColor"/>
+        </svg>
+        Clock In
+      `;
+    }
+    // Force-hide stop button and strip any stale classes from countdown mode
+    if (stopBtn) {
+      stopBtn.hidden = true;
+      stopBtn.className = 'btn btn--timer-finish';
+      stopBtn.removeAttribute('data-sw-action');
+    }
+
+  } else if (status === 'running') {
+    // ── Running: Pause + Clock Out ──
+    if (startBtn) {
+      startBtn.hidden = false;
+      startBtn.className = 'btn btn--primary btn--timer-pill';
+      startBtn.setAttribute('data-sw-action', 'pause');
+      startBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="3" y="2" width="3" height="10" fill="currentColor"/>
+          <rect x="8" y="2" width="3" height="10" fill="currentColor"/>
+        </svg>
+        Pause
+      `;
+    }
+    if (stopBtn) {
+      stopBtn.hidden = false;
+      stopBtn.className = 'btn btn--danger';
+      stopBtn.setAttribute('aria-label', 'Clock Out');
+      stopBtn.setAttribute('title', 'Clock out and record session');
+      stopBtn.setAttribute('data-sw-action', 'clock-out');
+      stopBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="3" y="3" width="8" height="8" rx="1.6" fill="currentColor"/>
+        </svg>
+        Clock Out
+      `;
+    }
+
+  } else if (status === 'paused') {
+    // ── Paused: Resume + Clock Out ──
+    if (startBtn) {
+      startBtn.hidden = false;
+      startBtn.className = 'btn btn--primary btn--timer-pill';
+      startBtn.setAttribute('data-sw-action', 'resume');
+      startBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
+          <path d="M4.4 2.8L11.2 7L4.4 11.2V2.8Z" fill="currentColor"/>
+        </svg>
+        Resume
+      `;
+    }
+    if (stopBtn) {
+      stopBtn.hidden = false;
+      stopBtn.className = 'btn btn--danger';
+      stopBtn.setAttribute('aria-label', 'Clock Out');
+      stopBtn.setAttribute('title', 'Clock out and record session');
+      stopBtn.setAttribute('data-sw-action', 'clock-out');
+      stopBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="3" y="3" width="8" height="8" rx="1.6" fill="currentColor"/>
+        </svg>
+        Clock Out
+      `;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// COUNTDOWN TIMER RENDERER
+// ---------------------------------------------------------------------------
+
+function _renderCountdownMode(state) {
   const timeEl         = document.getElementById('timer-display');
   const labelEl        = document.getElementById('timer-session-label');
   const progressCircle = document.querySelector('.timer-ring__progress');
   const startBtn       = document.getElementById('timerStart');
+  const resetBtn       = document.getElementById('timerReset');
+  const stopBtn        = document.getElementById('timerStop');
   const modeLabelEl    = document.getElementById('timer-mode-label');
   const modePill       = document.getElementById('timer-mode-pill');
+  const metaRow        = document.getElementById('timer-meta');
+  const swMetaRow      = document.getElementById('stopwatch-meta');
+  const elapsedVal     = document.getElementById('timer-elapsed');
+  const pctVal         = document.getElementById('timer-pct');
+  const finishVal      = document.getElementById('timer-finish');
 
-  // ── Countdown meta row ──
-  const metaRow  = document.getElementById('timer-meta');
-  const elapsedVal = document.getElementById('timer-elapsed');
-  const pctVal     = document.getElementById('timer-pct');
-  const finishVal  = document.getElementById('timer-finish');
 
-  // ── Stopwatch meta row ──
-  const swMetaRow = document.getElementById('stopwatch-meta');
+  if (modePill) modePill.classList.remove('is-running');
 
-  // ─────────────────────────────────────────────────────────
-  // STOPWATCH MODE
-  // ─────────────────────────────────────────────────────────
-  if (isStopwatch) {
-    // In stopwatch mode, remainingMs is actually elapsed time (see timerService)
-    const elapsedMs = state.remainingMs || 0;
+  if (timeEl) timeEl.textContent = formatRemaining(state.remainingMs);
 
-    if (timeEl)  timeEl.textContent = formatRemaining(elapsedMs);
-    if (labelEl) labelEl.textContent = state.status === 'running'
-      ? 'Tracking session…'
-      : state.status === 'paused' ? 'Paused' : 'Stopwatch';
-
-    if (modeLabelEl) modeLabelEl.textContent = state.status === 'running' ? 'Recording' : 'Stopwatch';
-    if (modePill) modePill.classList.toggle('is-running', state.status === 'running');
-
-    // Ring: spin forward as elapsed grows (cap at 1h for visual reference)
-    if (progressCircle) {
-      const refMs = 60 * 60 * 1000; // 1-hour reference circle
-      const pct   = Math.min(elapsedMs / refMs, 1);
-      progressCircle.style.strokeDashoffset = 616 * (1 - pct);
-    }
-
-    // Hide countdown meta, show stopwatch meta
-    metaRow?.setAttribute('hidden', 'true');
-    swMetaRow?.removeAttribute('hidden');
-
-  // ─────────────────────────────────────────────────────────
-  // COUNTDOWN (TIMER) MODE
-  // ─────────────────────────────────────────────────────────
-  } else {
-    if (modePill) modePill.classList.remove('is-running');
-
-    if (timeEl) timeEl.textContent = formatRemaining(state.remainingMs);
-
-    if (labelEl) {
-      labelEl.textContent = state.status === 'idle'
-        ? 'Ready'
-        : state.status === 'paused' ? 'Paused' : 'Studying';
-    }
-
-    if (modeLabelEl) modeLabelEl.textContent = 'Timer';
-
-    if (progressCircle) {
-      const totalMs = state.focusMinutes * 60 * 1000;
-      const pct     = totalMs > 0 ? state.remainingMs / totalMs : 1;
-      progressCircle.style.strokeDashoffset = 616 * (1 - Math.max(0, Math.min(1, pct)));
-    }
-
-    // Countdown meta row: show when active
-    if (state.status !== 'idle') {
-      metaRow?.removeAttribute('hidden');
-      const totalMs       = state.focusMinutes * 60 * 1000;
-      const elapsedMs     = Math.max(0, totalMs - state.remainingMs);
-      const completionPct = totalMs > 0 ? Math.min(100, Math.round((elapsedMs / totalMs) * 100)) : 0;
-      if (elapsedVal) elapsedVal.textContent = formatRemaining(elapsedMs);
-      if (pctVal)     pctVal.textContent     = `${completionPct}%`;
-      if (finishVal) {
-        const refTime = state.endTime || (Date.now() + state.remainingMs);
-        finishVal.textContent = new Date(refTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      }
-    } else {
-      metaRow?.setAttribute('hidden', 'true');
-    }
-
-    // Hide stopwatch meta
-    swMetaRow?.setAttribute('hidden', 'true');
-
-    syncPresetChips(state);
+  if (labelEl) {
+    labelEl.textContent = state.status === 'idle'
+      ? 'Ready'
+      : state.status === 'paused' ? 'Paused' : 'Studying';
   }
 
-  // ── Start/Pause button label (shared) ──
+  if (modeLabelEl) modeLabelEl.textContent = 'Timer';
+
+  if (progressCircle) {
+    const totalMs = state.focusMinutes * 60 * 1000;
+    const pct     = totalMs > 0 ? state.remainingMs / totalMs : 1;
+    progressCircle.style.strokeDashoffset = 616 * (1 - Math.max(0, Math.min(1, pct)));
+  }
+
+  // Countdown meta row
+  if (state.status !== 'idle') {
+    metaRow?.removeAttribute('hidden');
+    const totalMs       = state.focusMinutes * 60 * 1000;
+    const elapsedMs     = Math.max(0, totalMs - state.remainingMs);
+    const completionPct = totalMs > 0 ? Math.min(100, Math.round((elapsedMs / totalMs) * 100)) : 0;
+    if (elapsedVal) elapsedVal.textContent = formatRemaining(elapsedMs);
+    if (pctVal)     pctVal.textContent     = `${completionPct}%`;
+    if (finishVal) {
+      const refTime = state.endTime || (Date.now() + state.remainingMs);
+      finishVal.textContent = new Date(refTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  } else {
+    metaRow?.setAttribute('hidden', 'true');
+  }
+
+  swMetaRow?.setAttribute('hidden', 'true');
+
+  // Show/restore all countdown buttons — remove invisible class to reveal reset
+  if (resetBtn) {
+    resetBtn.hidden = false;
+    resetBtn.classList.remove('btn--invisible');
+  }
+  if (stopBtn) {
+    stopBtn.hidden = false;
+    stopBtn.className = 'btn btn--ghost-icon';
+    stopBtn.setAttribute('aria-label', 'Stop');
+    stopBtn.setAttribute('title', 'Stop session');
+    stopBtn.removeAttribute('data-sw-action');
+    stopBtn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <rect x="3" y="3" width="8" height="8" rx="1.6" fill="currentColor"/>
+      </svg>
+    `;
+  }
+
+  // Start/Pause button label
   if (startBtn) {
+    startBtn.removeAttribute('data-sw-action');
     if (state.status === 'running') {
       startBtn.innerHTML = `
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -247,17 +485,19 @@ async function syncTimerDisplay() {
       `;
     }
   }
+
+  syncPresetChips(state);
 }
 
-/**
- * Highlights the chip whose data-minutes matches the current focusMinutes.
- * Falls back to highlighting Custom when no chip matches.
- */
+// ---------------------------------------------------------------------------
+// PRESET CHIPS
+// ---------------------------------------------------------------------------
+
 function syncPresetChips(state) {
-  const chips      = document.querySelectorAll('.timer-card__presets .chip');
-  const customChip = document.getElementById('chip-custom');
+  const chips       = document.querySelectorAll('.timer-card__presets .chip');
+  const customChip  = document.getElementById('chip-custom');
   const customPanel = document.getElementById('custom-duration-panel');
-  let matchFound   = false;
+  let matchFound    = false;
 
   chips.forEach((chip) => {
     if (chip === customChip) return;
@@ -273,74 +513,96 @@ function syncPresetChips(state) {
   }
 }
 
-/** Segmented control — switches between Timer (countdown) and Stopwatch modes. */
+// ---------------------------------------------------------------------------
+// MODE SWITCH
+// ---------------------------------------------------------------------------
+
 function bindModeSwitch() {
   document.querySelectorAll('.mode-switch__btn').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const mode = btn.dataset.mode; // 'countdown' | 'stopwatch'
       await chrome.runtime.sendMessage({ type: 'SET_TIMER_MODE', mode });
-      // Load today's total immediately when switching to stopwatch
+      // Refresh today's total immediately when switching to stopwatch
       if (mode === 'stopwatch') await refreshStopwatchTotal();
       syncTimerDisplay();
     });
   });
 }
 
-/**
- * Reads today's study time from reportService and updates the stopwatch meta row.
- * Called: on switch to stopwatch, on TIMER_FINISHED, after STOPWATCH_STOP.
- */
-async function refreshStopwatchTotal() {
-  const report  = await generateDailyReport();
-  const totalEl = document.getElementById('stopwatch-today-total');
-  if (totalEl) totalEl.textContent = formatStudyTime(report.totalStudyTimeMinutes);
-}
+// ---------------------------------------------------------------------------
+// TIMER CONTROLS — mode-aware
+// ---------------------------------------------------------------------------
 
 function bindTimerControls() {
   const startBtn = document.getElementById('timerStart');
   const resetBtn = document.getElementById('timerReset');
   const stopBtn  = document.getElementById('timerStop');
 
+  // ── Primary / Start button ──────────────────────────────────────────────
   startBtn?.addEventListener('click', async () => {
-    const state = await getTimerState();
-    if (state.status === 'running') {
-      await chrome.runtime.sendMessage({ type: 'TIMER_PAUSE' });
+    const swAction = startBtn.getAttribute('data-sw-action');
+
+    if (swAction) {
+      // Stopwatch mode actions
+      if (swAction === 'clock-in') {
+        await chrome.runtime.sendMessage({ type: 'CLOCK_IN' });
+      } else if (swAction === 'pause') {
+        await chrome.runtime.sendMessage({ type: 'STOPWATCH_PAUSE' });
+      } else if (swAction === 'resume') {
+        await chrome.runtime.sendMessage({ type: 'STOPWATCH_RESUME' });
+      }
     } else {
-      await chrome.runtime.sendMessage({ type: 'TIMER_START' });
+      // Countdown timer mode
+      const state = await chrome.runtime.sendMessage({ type: 'GET_STATE' });
+      if (state.status === 'running') {
+        await chrome.runtime.sendMessage({ type: 'TIMER_PAUSE' });
+      } else {
+        await chrome.runtime.sendMessage({ type: 'TIMER_START' });
+      }
     }
+
+    syncTimerDisplay();
   });
 
+  // ── Reset button (countdown mode only) ─────────────────────────────────
   resetBtn?.addEventListener('click', async () => {
     await chrome.runtime.sendMessage({ type: 'TIMER_STOP' });
+    syncTimerDisplay();
   });
 
-  // Stop behaves differently per mode:
-  // • Countdown → plain TIMER_STOP (no recording; alarm handles that)
-  // • Stopwatch → STOPWATCH_STOP (records session then stops)
+  // ── Stop / Clock-Out button ─────────────────────────────────────────────
   stopBtn?.addEventListener('click', async () => {
-    const state = await getTimerState();
-    if (state.timerMode === 'stopwatch') {
-      await chrome.runtime.sendMessage({ type: 'STOPWATCH_STOP' });
+    const swAction = stopBtn.getAttribute('data-sw-action');
+
+    if (swAction === 'clock-out') {
+      await chrome.runtime.sendMessage({ type: 'CLOCK_OUT' });
       await refreshStopwatchTotal();
     } else {
+      // Countdown: plain stop (alarm records the session when complete)
       await chrome.runtime.sendMessage({ type: 'TIMER_STOP' });
     }
+
+    syncTimerDisplay();
   });
 }
 
+// ---------------------------------------------------------------------------
+// PRESET CONTROLS
+// ---------------------------------------------------------------------------
+
 function bindPresetControls() {
-  const chips      = document.querySelectorAll('.timer-card__presets .chip');
+  const chips       = document.querySelectorAll('.timer-card__presets .chip');
   const customPanel = document.getElementById('custom-duration-panel');
   const customChip  = document.getElementById('chip-custom');
 
   chips.forEach((chip) => {
     chip.addEventListener('click', async () => {
-      // Custom chip toggles the custom panel
       if (chip === customChip) {
         if (customPanel) {
           const isHidden = customPanel.hasAttribute('hidden');
           isHidden ? customPanel.removeAttribute('hidden') : customPanel.setAttribute('hidden', 'true');
-          syncPresetChips(await getTimerState());
+          const state = await chrome.runtime.sendMessage({ type: 'GET_STATE' });
+          syncPresetChips(state);
         }
         return;
       }
@@ -349,7 +611,6 @@ function bindPresetControls() {
       chips.forEach((c) => c.classList.remove('chip--active'));
       chip.classList.add('chip--active');
 
-      // Read duration from data-minutes attribute
       const minutes = parseInt(chip.dataset.minutes, 10);
       if (minutes > 0) {
         await chrome.runtime.sendMessage({
@@ -357,12 +618,15 @@ function bindPresetControls() {
           focusMinutes: minutes,
           breakMinutes: 5,
         });
-        // Stop any running timer so the display resets to the new duration
         await chrome.runtime.sendMessage({ type: 'TIMER_STOP' });
       }
     });
   });
 }
+
+// ---------------------------------------------------------------------------
+// CUSTOM DURATION INPUT
+// ---------------------------------------------------------------------------
 
 function bindCustomDurationInput() {
   const hoursInput   = document.getElementById('input-hours');
@@ -407,81 +671,156 @@ function bindCustomDurationInput() {
   updateHint();
 }
 
-// ============================================================
+// ---------------------------------------------------------------------------
+// STOPWATCH TOTAL
+// ---------------------------------------------------------------------------
+
+/**
+ * Reads today's completed study time from reportService and updates the stopwatch meta row.
+ * ONLY counts completed sessions — active/in-progress sessions are excluded.
+ */
+async function refreshStopwatchTotal() {
+  const report  = await generateDailyReport();
+  const totalEl = document.getElementById('stopwatch-today-total');
+  if (totalEl) totalEl.textContent = formatStudyTime(report.totalStudyTimeMinutes);
+}
+
+// ---------------------------------------------------------------------------
 // TASKS PAGE
-// ============================================================
+// ---------------------------------------------------------------------------
+
+/** ID of the task currently loaded into the input for editing, or null. */
+let _editingTaskId = null;
 
 function bindTasksPage() {
   const input  = document.getElementById('task-input');
   const addBtn = document.getElementById('task-add-btn');
 
   input?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleAddTask();
+    if (e.key === 'Enter') handleAddOrUpdateTask();
+    if (e.key === 'Escape') _cancelEdit();
   });
+  addBtn?.addEventListener('click', handleAddOrUpdateTask);
 
-  addBtn?.addEventListener('click', handleAddTask);
+  // Click outside the compose bar cancels editing
+  document.addEventListener('click', (e) => {
+    if (!_editingTaskId) return;
+    const compose = document.querySelector('.task-compose');
+    if (compose && !compose.contains(e.target)) {
+      _cancelEdit();
+    }
+  });
 }
 
-async function handleAddTask() {
+function _cancelEdit() {
+  if (!_editingTaskId) return;
+  _editingTaskId = null;
+  const input  = document.getElementById('task-input');
+  const addBtn = document.getElementById('task-add-btn');
+  if (input) { input.value = ''; input.placeholder = 'Add a new task...'; }
+  if (addBtn) {
+    addBtn.textContent = 'Add';
+    addBtn.className = 'btn btn--primary btn--sm';
+  }
+  // Remove any editing highlight
+  document.querySelectorAll('.task-row--editing').forEach((el) => el.classList.remove('task-row--editing'));
+}
+
+async function handleAddOrUpdateTask() {
   const input = document.getElementById('task-input');
   const title = input?.value.trim();
   if (!title) return;
 
-  await chrome.runtime.sendMessage({
-    type: 'TASK_ADD',
-    task: { title },
-  });
-
-  input.value = '';
-  input.focus();
+  if (_editingTaskId) {
+    // UPDATE existing task
+    await chrome.runtime.sendMessage({ type: 'TASK_UPDATE', id: _editingTaskId, updates: { title } });
+    _cancelEdit();
+  } else {
+    // ADD new task
+    await chrome.runtime.sendMessage({ type: 'TASK_ADD', task: { title } });
+    if (input) input.value = '';
+    input?.focus();
+  }
   renderTaskList();
 }
 
+/** @deprecated kept for backward compat if called elsewhere */
+async function handleAddTask() {
+  return handleAddOrUpdateTask();
+}
+
+/** Returns midnight (start of day) timestamp for a given ms timestamp */
+function _startOfDay(ms) {
+  const d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
 async function renderTaskList() {
-  const activeListEl   = document.getElementById('tasks-active');
-  const completedListEl= document.getElementById('tasks-completed');
-  const activeEmptyEl  = document.getElementById('active-empty');
-  const activeCountEl  = document.getElementById('active-count');
+  const todayListEl    = document.getElementById('tasks-today');
+  const overdueListEl  = document.getElementById('tasks-overdue');
+  const completedListEl = document.getElementById('tasks-completed');
+  const todayCountEl   = document.getElementById('today-count');
+  const overdueCountEl = document.getElementById('overdue-count');
   const completedCountEl = document.getElementById('completed-count');
+  const sectionToday    = document.getElementById('section-today');
+  const sectionOverdue  = document.getElementById('section-overdue');
   const sectionCompleted = document.getElementById('section-completed');
-  if (!activeListEl || !completedListEl) return;
+  if (!todayListEl || !completedListEl) return;
 
-  const allTasks = await getTasks();
+  const allTasks   = await getTasks();
+  const todayStart = _startOfDay(Date.now());
 
-  const active    = allTasks.filter((t) => !t.completed);
-  const completed = allTasks.filter((t) =>  t.completed);
+  // TODAY: created today, not yet completed
+  const todayTasks = allTasks.filter(
+    (t) => !t.completed && _startOfDay(t.createdAt) === todayStart
+  );
 
-  // Active count badge
-  if (activeCountEl) activeCountEl.textContent = active.length > 0 ? active.length : '';
-  // Completed count badge
-  if (completedCountEl) completedCountEl.textContent = completed.length > 0 ? completed.length : '';
+  // PENDING / OVERDUE: created before today, not yet completed
+  const overdueTasks = allTasks.filter(
+    (t) => !t.completed && _startOfDay(t.createdAt) < todayStart
+  );
 
-  // Active section empty state
-  if (active.length === 0) {
-    activeListEl.innerHTML = '';
-    activeEmptyEl?.removeAttribute('hidden');
-  } else {
-    activeEmptyEl?.setAttribute('hidden', 'true');
-    activeListEl.innerHTML = '';
-    active.forEach((t) => activeListEl.appendChild(buildTaskRow(t)));
+  // COMPLETED: finished today only (older ones disappear automatically)
+  const completedToday = allTasks.filter(
+    (t) => t.completed && t.completedAt && _startOfDay(t.completedAt) === todayStart
+  );
+
+  // Update count badges
+  if (todayCountEl)     todayCountEl.textContent     = todayTasks.length > 0 ? todayTasks.length : '';
+  if (overdueCountEl)   overdueCountEl.textContent   = overdueTasks.length > 0 ? overdueTasks.length : '';
+  if (completedCountEl) completedCountEl.textContent = completedToday.length > 0 ? completedToday.length : '';
+
+  // Always reset lists before appending
+  todayListEl.innerHTML = '';
+  if (overdueListEl) overdueListEl.innerHTML = '';
+  completedListEl.innerHTML = '';
+
+  // Render TODAY list
+  todayTasks.forEach((t) => todayListEl.appendChild(buildTaskRow(t, false)));
+
+  // Render OVERDUE list (show section only when there are overdue tasks)
+  if (sectionOverdue) {
+    sectionOverdue.hidden = overdueTasks.length === 0;
+  }
+  if (overdueListEl && overdueTasks.length > 0) {
+    overdueTasks.forEach((t) => overdueListEl.appendChild(buildTaskRow(t, true)));
   }
 
-  // Completed section — show only when there are completed tasks
-  if (completed.length === 0) {
-    if (sectionCompleted) sectionCompleted.hidden = true;
-  } else {
-    if (sectionCompleted) sectionCompleted.hidden = false;
-    completedListEl.innerHTML = '';
-    completed.forEach((t) => completedListEl.appendChild(buildTaskRow(t)));
+  // Render COMPLETED list (show section only when completed today)
+  if (sectionCompleted) {
+    sectionCompleted.hidden = completedToday.length === 0;
+  }
+  if (completedToday.length > 0) {
+    completedToday.forEach((t) => completedListEl.appendChild(buildTaskRow(t, false)));
   }
 }
 
-function buildTaskRow(task) {
+function buildTaskRow(task, isOverdue = false) {
   const li = document.createElement('li');
-  li.className = `task-row${task.completed ? ' task-row--done' : ''}`;
+  li.className = `task-row${task.completed ? ' task-row--done' : ''}${isOverdue ? ' task-row--overdue' : ''}`;
   li.dataset.id = task.id;
 
-  // Checkbox
   const checkbox = document.createElement('span');
   checkbox.className = `task-row__checkbox${task.completed ? ' task-row__checkbox--checked' : ''}`;
   checkbox.setAttribute('role', 'checkbox');
@@ -497,35 +836,68 @@ function buildTaskRow(task) {
   }
 
   const toggleComplete = async () => {
-    await chrome.runtime.sendMessage({ type: 'TASK_COMPLETE', id: task.id, completed: !task.completed });
-    renderTaskList();
+    if (task.completed) {
+      // Uncompleting: reset createdAt to today so the task re-appears in TODAY section
+      await chrome.runtime.sendMessage({
+        type: 'TASK_UPDATE',
+        id: task.id,
+        updates: { completed: false, completedAt: null, createdAt: Date.now() },
+      });
+    } else {
+      // Completing normally
+      await chrome.runtime.sendMessage({ type: 'TASK_COMPLETE', id: task.id, completed: true });
+    }
+    await renderTaskList();
   };
   checkbox.addEventListener('click',   (e) => { e.stopPropagation(); toggleComplete(); });
   checkbox.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleComplete(); } });
 
-  // Body
-  const body  = document.createElement('div');
+  const body = document.createElement('div');
   body.className = 'task-row__body';
 
   const title = document.createElement('span');
   title.className = 'task-row__title';
   title.textContent = task.title;
-
   body.appendChild(title);
 
-  // Delete button
+  // Click on task title loads it into the input for editing (incomplete tasks only)
+  if (!task.completed) {
+    body.style.cursor = 'pointer';
+    body.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const input  = document.getElementById('task-input');
+      const addBtn = document.getElementById('task-add-btn');
+      document.querySelectorAll('.task-row--editing').forEach((el) => el.classList.remove('task-row--editing'));
+      _editingTaskId = task.id;
+      if (input) { input.value = task.title; input.placeholder = 'Edit task...'; input.focus(); input.select(); }
+      if (addBtn) { addBtn.textContent = 'Update'; addBtn.className = 'btn btn--update btn--sm'; }
+      li.classList.add('task-row--editing');
+    });
+  }
+
+  // Delete button — works for ALL tasks including completed
   const delBtn = document.createElement('button');
-  delBtn.className = 'task-row__delete';
+  delBtn.className = `task-row__delete${task.completed ? ' task-row__delete--visible' : ''}`;
   delBtn.setAttribute('aria-label', 'Delete task');
+  delBtn.setAttribute('type', 'button');
   delBtn.innerHTML = `
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
       <path d="M3 3.5L11 10.5M11 3.5L3 10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
     </svg>
   `;
-  delBtn.addEventListener('click', async (e) => {
+  // Use mousedown instead of click so it fires before any blur/focus events
+  delBtn.addEventListener('mousedown', (e) => {
+    e.preventDefault();  // prevent focus change
     e.stopPropagation();
+  });
+  delBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (_editingTaskId === task.id) _cancelEdit();
+    li.style.opacity = '0';
+    li.style.transition = 'opacity 0.18s ease';
     await chrome.runtime.sendMessage({ type: 'TASK_DELETE', id: task.id });
-    renderTaskList();
+    await renderTaskList();
   });
 
   li.appendChild(checkbox);
@@ -535,9 +907,9 @@ function buildTaskRow(task) {
   return li;
 }
 
-// ============================================================
+// ---------------------------------------------------------------------------
 // REPORTS PAGE
-// ============================================================
+// ---------------------------------------------------------------------------
 
 function bindReportsPage() {
   document.querySelectorAll('.period-tab').forEach((btn) => {
@@ -591,22 +963,14 @@ async function renderStreak() {
   streakEl.textContent = streak > 0 ? `${streak} day${streak !== 1 ? 's' : ''}` : '—';
 }
 
-/**
- * Renders the bar chart for the given period.
- * • daily   → last 7 days (Mon…Sun style)
- * • weekly  → Mon–Sun of this week
- * • monthly → 7 week buckets (W1…W7)
- */
 async function renderBarChart(period) {
-  const chartBars = document.getElementById('reports-chart-bars');
+  const chartBars  = document.getElementById('reports-chart-bars');
   const chartLabel = document.getElementById('chart-period-label');
   if (!chartBars) return;
 
-  // getChartData returns minutes per bar
   const data = await getChartData(period);
   const maxMinutes = Math.max(...data, 1);
 
-  // Build bar labels
   let labels;
   if (period === 'monthly') {
     labels = data.map((_, i) => `W${i + 1}`);
@@ -616,7 +980,6 @@ async function renderBarChart(period) {
     labels = DAY_LABELS;
     if (chartLabel) chartLabel.textContent = 'This Week';
   } else {
-    // daily: last 7 days
     const days = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -627,13 +990,12 @@ async function renderBarChart(period) {
     if (chartLabel) chartLabel.textContent = 'Last 7 Days';
   }
 
-  // Determine today index for highlighting
   let todayIdx = -1;
   if (period === 'daily') {
-    todayIdx = 6; // last bar is always today
+    todayIdx = 6;
   } else if (period === 'weekly') {
     const d = new Date().getDay(); // 0=Sun
-    todayIdx = d === 0 ? 6 : d - 1; // Mon-indexed
+    todayIdx = d === 0 ? 6 : d - 1;
   }
 
   chartBars.innerHTML = '';
@@ -659,9 +1021,9 @@ async function renderBarChart(period) {
   });
 }
 
-// ============================================================
+// ---------------------------------------------------------------------------
 // HELPERS
-// ============================================================
+// ---------------------------------------------------------------------------
 
 function formatStudyTime(minutes) {
   if (!minutes || minutes <= 0) return '0m';
@@ -669,9 +1031,4 @@ function formatStudyTime(minutes) {
   const mins  = minutes % 60;
   if (hours > 0) return `${hours}h ${String(mins).padStart(2, '0')}m`;
   return `${mins}m`;
-}
-
-function capitalize(str) {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1);
 }

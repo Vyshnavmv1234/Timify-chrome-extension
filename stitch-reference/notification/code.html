@@ -1,0 +1,329 @@
+<!DOCTYPE html><html class="h-full bg-[#0d0d0d] text-[#ececec]" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Timify In-Page Motivational HUD</title>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts for Inter, Cormorant Garamond & Newsreader -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&amp;family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&amp;display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            serif: ['Newsreader', 'Cormorant Garamond', 'Georgia', 'serif'],
+          },
+          colors: {
+            coral: {
+              400: '#ff8f79',
+              500: '#ff7f66',
+              600: '#e86850',
+            },
+            obsidian: {
+              850: '#141416',
+              900: '#0f0f12',
+              950: '#09090b',
+            }
+          },
+          boxShadow: {
+            'hud-glow': '0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 127, 102, 0.15)',
+            'code-block': '0 4px 20px rgba(0, 0, 0, 0.4)',
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-scrollbars">
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+  </style>
+</head>
+<body class="h-full font-sans antialiased overflow-hidden flex flex-col bg-[#0d0d0d] text-[#ececec]">
+<!-- ========================================================================= -->
+<!-- 1. SLEEK MINIMAL FLOATING CAPSULE HUD (Ultra-minimal Aesthetic Pill)       -->
+<!-- ========================================================================= -->
+<aside class="fixed top-[24px] left-1/2 -translate-x-1/2 z-[99999] pointer-events-auto transition-all duration-300 max-w-fit w-auto" data-purpose="extension-notification-hud" id="timify-hud-banner" style="transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1); opacity: 0; transform: translate(-50%, -14px) scale(0.96); display: none;">
+<div class="relative flex items-center gap-3 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#120c0b]/90 backdrop-blur-xl border border-[#ff7f66]/25 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.7),0_0_18px_rgba(255,127,102,0.12)] select-none">
+<!-- Subtle warm glow ambient bleed -->
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 w-32 h-6 bg-[#ff7f66]/15 rounded-full blur-xl pointer-events-none"></div>
+<!-- Coral Star / Petal Accent Glyph -->
+<span class="text-[#ff7f66] text-xs shrink-0 select-none animate-pulse">✦</span>
+<!-- Poetic Serif Quote -->
+<p class="text-[13.5px] sm:text-[14px] text-[#f7ece8]/95 antialiased whitespace-nowrap leading-none pt-0.5 font-bold tracking-tight lowercase" style="font-family: Arial, &quot;Helvetica Neue&quot;, Helvetica, sans-serif; font-weight: 700; letter-spacing: -0.035em; text-transform: lowercase;">“if it’s meant to be, it’ll be. let the petals teach you the art of letting go.”</p>
+<!-- Discreet Close Button -->
+<button aria-label="Dismiss" class="ml-1 sm:ml-2 w-4 h-4 rounded-full flex items-center justify-center text-white/40 hover:text-white/80 transition-colors duration-150 text-[11px] leading-none shrink-0" onclick="dismissHud()" type="button">
+      ✕
+    </button>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- HOST BROWSER WEBPAGE (Simulated Tab Environment with Clean Coding Context)-->
+<!-- ========================================================================= -->
+<div class="flex-1 flex flex-col h-full overflow-hidden bg-[#0d0d0d] relative">
+<!-- Top Web Navigation Header (Simulated Web App Header) -->
+<header class="h-12 border-b border-white/[0.08] flex items-center justify-between px-4 shrink-0 bg-[#0d0d0d]/90 backdrop-blur">
+<div class="flex items-center gap-3">
+<button class="text-white/60 hover:text-white p-1 rounded hover:bg-white/5 transition">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect>
+<line x1="9" x2="9" y1="3" y2="21"></line>
+</svg>
+</button>
+<div class="flex items-center gap-1.5 text-sm font-medium text-white/80">
+<span class="">ChatGPT</span>
+<svg class="w-3.5 h-3.5 text-white/40" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+<!-- Right Header Actions -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#ff7f66]/10 border border-[#ff7f66]/30 text-[#ff7f66] text-xs font-mono">
+<span class="w-1.5 h-1.5 rounded-full bg-[#ff7f66] animate-pulse"></span>
+<span class="">Timify Active</span>
+</div>
+<button class="flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium text-white/80 hover:bg-white/10 transition border border-white/10">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<circle cx="18" cy="5" r="3"></circle>
+<circle cx="6" cy="12" r="3"></circle>
+<circle cx="18" cy="19" r="3"></circle>
+<line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
+<line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
+</svg>
+<span class="">Share</span>
+</button>
+<div class="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-600 to-[#ff7f66] flex items-center justify-center text-xs font-bold text-white shadow">
+        W
+      </div>
+</div>
+</header>
+<!-- Main Content Stream / Conversation -->
+<main class="flex-1 overflow-y-auto px-4 md:px-0 flex flex-col items-center pt-8">
+<div class="w-full max-w-3xl pb-8 space-y-6">
+<!-- Explanation text item -->
+<div class="text-[15px] text-white/90 leading-relaxed font-normal">
+        Your extension can then send a message to that tab:
+      </div>
+<!-- Code Block 1: Chrome tabs message -->
+<div class="rounded-xl overflow-hidden bg-[#171717] border border-white/10 shadow-code-block font-mono text-sm">
+<div class="flex items-center justify-between px-4 py-2 bg-[#212121] text-xs text-white/70 border-b border-white/5">
+<div class="flex items-center gap-2">
+<svg class="w-3.5 h-3.5 text-white/50" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<polyline points="16 18 22 12 16 6"></polyline>
+<polyline points="8 6 2 12 8 18"></polyline>
+</svg>
+<span class="">JavaScript</span>
+</div>
+<button class="flex items-center gap-1 hover:text-white transition">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<rect height="13" rx="2" ry="2" width="13" x="9" y="9"></rect>
+<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+</svg>
+<span class="">Copy code</span>
+</button>
+</div>
+<div class="p-4 text-xs sm:text-[13px] leading-6 overflow-x-auto text-[#e6edf3]">
+<span class="text-[#79c0ff]">chrome</span>.<span class="text-[#79c0ff]">tabs</span>.<span class="text-[#d2a8ff]">sendMessage</span>(tab.<span class="text-[#79c0ff]">id</span>, {<br>
+          &nbsp;&nbsp;<span class="text-[#79c0ff]">type</span>: <span class="text-[#a5d6ff]">"TIMER_FINISHED"</span><br>
+          });
+        </div>
+</div>
+<div class="text-[15px] text-white/90 leading-relaxed font-normal">
+        A content script running inside ChatGPT receives it:
+      </div>
+<!-- Code Block 2: Listener -->
+<div class="rounded-xl overflow-hidden bg-[#171717] border border-white/10 shadow-code-block font-mono text-sm">
+<div class="flex items-center justify-between px-4 py-2 bg-[#212121] text-xs text-white/70 border-b border-white/5">
+<div class="flex items-center gap-2">
+<svg class="w-3.5 h-3.5 text-white/50" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<polyline points="16 18 22 12 16 6"></polyline>
+<polyline points="8 6 2 12 8 18"></polyline>
+</svg>
+<span class="">JavaScript</span>
+</div>
+<button class="flex items-center gap-1 hover:text-white transition">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<rect height="13" rx="2" ry="2" width="13" x="9" y="9"></rect>
+<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+</svg>
+<span class="">Copy code</span>
+</button>
+</div>
+<div class="p-4 text-xs sm:text-[13px] leading-6 overflow-x-auto text-[#e6edf3]">
+<span class="text-[#79c0ff]">chrome</span>.<span class="text-[#79c0ff]">runtime</span>.<span class="text-[#79c0ff]">onMessage</span>.<span class="text-[#d2a8ff]">addListener</span>((<span class="text-[#ffa657]">message</span>) =&gt; {<br>
+          &nbsp;&nbsp;<span class="text-[#ff7b72]">if</span> (message.<span class="text-[#79c0ff]">type</span> === <span class="text-[#a5d6ff]">"TIMER_FINISHED"</span>) {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-[#d2a8ff]">showTimerNotification</span>();<br>
+          &nbsp;&nbsp;}<br>
+          });
+        </div>
+</div>
+<div class="text-[15px] text-white/90 leading-relaxed font-normal">
+        Then your content script creates the Timify motivational HUD:
+      </div>
+<!-- Code Block 3: HTML representation -->
+<div class="rounded-xl overflow-hidden bg-[#171717] border border-white/10 shadow-code-block font-mono text-sm">
+<div class="flex items-center justify-between px-4 py-2 bg-[#212121] text-xs text-white/70 border-b border-white/5">
+<div class="flex items-center gap-2">
+<svg class="w-3.5 h-3.5 text-white/50" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<polyline points="16 18 22 12 16 6"></polyline>
+<polyline points="8 6 2 12 8 18"></polyline>
+</svg>
+<span class="">HTML</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-white/40">&lt;/&gt;</span>
+<button class="hover:text-white transition">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<rect height="13" rx="2" ry="2" width="13" x="9" y="9"></rect>
+<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+</svg>
+</button>
+</div>
+</div>
+<div class="p-4 text-xs sm:text-[13px] leading-6 overflow-x-auto text-[#e6edf3]">
+<span class="text-[#7ee787]">&lt;div</span> <span class="text-[#79c0ff]">class</span>=<span class="text-[#a5d6ff]">"timify-notification-hud"</span><span class="text-[#7ee787]">&gt;</span><br>
+          &nbsp;&nbsp;🎯 1h Focus Completed · Keep going ✨<br>
+<span class="text-[#7ee787]">&lt;/div&gt;</span>
+</div>
+</div>
+<div class="text-[15px] text-white/90 leading-relaxed font-normal">
+        and positions it so visually it becomes an elegant, frictionless part of the current browsing experience:
+      </div>
+<!-- Code Block 4: CSS -->
+<div class="rounded-xl overflow-hidden bg-[#171717] border border-white/10 shadow-code-block font-mono text-sm mb-12">
+<div class="flex items-center justify-between px-4 py-2 bg-[#212121] text-xs text-white/70 border-b border-white/5">
+<div class="flex items-center gap-2">
+<svg class="w-3.5 h-3.5 text-white/50" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<polyline points="16 18 22 12 16 6"></polyline>
+<polyline points="8 6 2 12 8 18"></polyline>
+</svg>
+<span class="">CSS</span>
+</div>
+<button class="flex items-center gap-1 hover:text-white transition">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<rect height="13" rx="2" ry="2" width="13" x="9" y="9"></rect>
+<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+</svg>
+<span class="">Copy code</span>
+</button>
+</div>
+<div class="p-4 text-xs sm:text-[13px] leading-6 overflow-x-auto text-[#e6edf3]">
+<span class="text-[#ffa657]">.timify-notification-hud</span> {<br>
+          &nbsp;&nbsp;<span class="text-[#79c0ff]">position</span>: fixed;<br>
+          &nbsp;&nbsp;<span class="text-[#79c0ff]">top</span>: <span class="text-[#79c0ff]">24px</span>;<br>
+          &nbsp;&nbsp;<span class="text-[#79c0ff]">left</span>: <span class="text-[#79c0ff]">50%</span>;<br>
+          &nbsp;&nbsp;<span class="text-[#79c0ff]">transform</span>: translateX(-50%);<br>
+          &nbsp;&nbsp;<span class="text-[#79c0ff]">height</span>: <span class="text-[#79c0ff]">44px</span>;<br>
+          &nbsp;&nbsp;<span class="text-[#79c0ff]">border-radius</span>: <span class="text-[#79c0ff]">9999px</span>;<br>
+          &nbsp;&nbsp;<span class="text-[#79c0ff]">z-index</span>: <span class="text-[#79c0ff]">99999</span>;<br>
+          }
+        </div>
+</div>
+</div>
+</main>
+<!-- Bottom Input & Controls Dock -->
+<footer class="w-full shrink-0 flex flex-col items-center pb-5 pt-2 bg-[#0d0d0d] relative z-20">
+<!-- Re-trigger HUD Demo Pill -->
+<div class="mb-2">
+<button class="flex items-center gap-1.5 px-3 py-1 text-xs text-[#ff7f66] bg-[#ff7f66]/10 hover:bg-[#ff7f66]/20 border border-[#ff7f66]/30 rounded-full transition" id="respawn-button" onclick="respawnHud()">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+</svg>
+<span class="">Trigger Timify Milestone Event</span>
+</button>
+</div>
+<!-- ChatGPT Prompt Box -->
+<div class="w-full max-w-3xl px-4">
+<div class="relative bg-[#212121] rounded-3xl border border-white/[0.08] shadow-lg flex items-center px-3.5 py-2.5 focus-within:border-white/20 transition">
+<button class="w-8 h-8 rounded-full hover:bg-white/5 flex items-center justify-center text-white/50 hover:text-white transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<line x1="12" x2="12" y1="5" y2="19"></line>
+<line x1="5" x2="19" y1="12" y2="12"></line>
+</svg>
+</button>
+<input class="w-full bg-transparent border-none text-sm text-white placeholder-white/40 focus:ring-0 focus:outline-none px-2" placeholder="Ask anything" type="text">
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium text-white/60 hover:text-white hover:bg-white/5 transition">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<line x1="12" x2="12" y1="16" y2="12"></line>
+<line x1="12" x2="12.01" y1="8" y2="8"></line>
+</svg>
+<span class="">Think</span>
+</button>
+<button class="p-1.5 text-white/60 hover:text-white transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+<path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+<line x1="12" x2="12" y1="19" y2="23"></line>
+<line x1="8" x2="16" y1="23" y2="23"></line>
+</svg>
+</button>
+<button class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/40 flex items-center justify-center transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M22 2L11 13"></path>
+<path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<!-- Simple Interactive Logic -->
+<script data-purpose="hud-interaction">
+  let autoDismissTimer = null;
+
+  function dismissHud() {
+    const hud = document.getElementById('timify-hud-banner');
+    if (hud) {
+      hud.style.transition = 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+      hud.style.opacity = '0';
+      hud.style.transform = 'translate(-50%, -14px) scale(0.96)';
+      setTimeout(() => {
+        hud.style.display = 'none';
+      }, 250);
+    }
+    if (autoDismissTimer) clearTimeout(autoDismissTimer);
+  }
+
+  function respawnHud() {
+    const hud = document.getElementById('timify-hud-banner');
+    if (hud) {
+      hud.style.display = 'block';
+      setTimeout(() => {
+        hud.style.opacity = '1';
+        hud.style.transform = 'translate(-50%, 0) scale(1)';
+      }, 10);
+
+      if (autoDismissTimer) clearTimeout(autoDismissTimer);
+      autoDismissTimer = setTimeout(() => {
+        dismissHud();
+      }, 6000);
+    }
+  }
+
+  // Set initial 6-second auto dismiss
+  autoDismissTimer = setTimeout(() => {
+    dismissHud();
+  }, 6000);
+</script>
+
+
+</body></html>

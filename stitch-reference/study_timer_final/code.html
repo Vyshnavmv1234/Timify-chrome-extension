@@ -1,0 +1,116 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"primary-fixed-dim":"#ffb4a5","tertiary-container":"#00b9a1","tertiary-fixed-dim":"#4adcc3","surface-bright":"#433634","on-secondary-fixed-variant":"#454749","on-primary-container":"#731808","on-tertiary":"#00382f","primary-fixed":"#ffdad3","on-tertiary-fixed":"#00201b","outline":"#a58b85","outline-variant":"#57423e","inverse-surface":"#f3deda","secondary-fixed":"#e2e2e5","surface-tint":"#ffb4a5","on-background":"#f3deda","surface-container-highest":"#3f322f","surface-container-lowest":"#150c0a","primary-container":"#ff7f66","tertiary-fixed":"#6cf9df","background":"#1b110f","on-tertiary-fixed-variant":"#005045","inverse-primary":"#a43c28","on-primary":"#640c01","error":"#ffb4ab","surface-dim":"#1b110f","primary":"#ffb4a5","on-secondary-fixed":"#1a1c1e","secondary":"#c6c6c9","secondary-container":"#454749","inverse-on-surface":"#3a2d2b","on-error-container":"#ffdad6","on-secondary-container":"#b4b5b7","on-secondary":"#2f3133","surface-variant":"#3f322f","on-tertiary-container":"#004339","error-container":"#93000a","surface":"#1b110f","tertiary":"#4adcc3","on-error":"#690005","on-surface-variant":"#dec0ba","on-primary-fixed":"#3f0400","on-primary-fixed-variant":"#842413","surface-container-high":"#332725","on-surface":"#f3deda","surface-container-low":"#241917","secondary-fixed-dim":"#c6c6c9","surface-container":"#281d1b"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"stack-gap":"0.75rem","container-padding":"2rem","sidebar-width":"260px","section-gap":"3rem","gutter":"1.5rem"},"fontFamily":{"headline-lg":["Inter"],"headline-md":["Inter"],"body-lg":["Inter"],"label-sm":["Inter"],"label-md":["Inter"],"display":["Inter"],"body-md":["Inter"]},"fontSize":{"headline-lg":["32px",{"lineHeight":"1.2","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"1.3","fontWeight":"500"}],"body-lg":["17px",{"lineHeight":"1.5","fontWeight":"400"}],"label-sm":["11px",{"lineHeight":"1.2","letterSpacing":"0.05em","fontWeight":"600"}],"label-md":["13px",{"lineHeight":"1.2","letterSpacing":"0.01em","fontWeight":"500"}],"display":["48px",{"lineHeight":"1.1","letterSpacing":"-0.02em","fontWeight":"600"}],"body-md":["15px",{"lineHeight":"1.5","fontWeight":"400"}]}}}}</script><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"></head><body class="bg-background font-body-md text-body-md text-on-background antialiased"><aside class="fixed left-0 top-0 h-full w-sidebar-width bg-surface-container-lowest z-50 flex flex-col border-r border-white/5"><div class="p-container-padding flex items-center gap-3 select-none"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-primary-container text-[20px]">timer</span></div><span class="font-headline-md text-headline-md text-on-surface tracking-tight">Timify</span></div><nav class="flex-1 mt-stack-gap px-4 flex flex-col gap-1" data-active-classes="bg-surface-container-highest text-primary"><a aria-current="page" class="flex items-center px-4 py-3 rounded-lg transition-all duration-200 group bg-surface-container text-primary" data-path="study-timer" href="#"><span class="material-symbols-outlined mr-3 text-[22px]">alarm</span><span class="font-label-md text-label-md">Study Timer</span></a><a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all duration-200 group" data-path="tasks" href="#"><span class="material-symbols-outlined mr-3 text-[22px]">checklist</span><span class="font-label-md text-label-md">Tasks</span></a><a class="flex items-center px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all duration-200 group" data-path="reports" href="#"><span class="material-symbols-outlined mr-3 text-[22px]">bar_chart</span><span class="font-label-md text-label-md">Reports</span></a></nav><div class="p-6"><div class="flex items-center gap-3 px-3 py-2"><div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center"><span class="material-symbols-outlined text-on-surface-variant text-[18px]">person</span></div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface">Pro User</span><span class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Premium</span></div></div></div></aside><div class="pl-sidebar-width"><header class="fixed top-0 left-sidebar-width right-0 h-16 bg-background/80 backdrop-blur-xl z-40 flex items-center justify-end px-container-padding gap-gutter"><button class="p-2 text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined">search</span></button><button class="p-2 text-on-surface-variant hover:text-on-surface transition-colors relative"><span class="material-symbols-outlined">notifications</span><span class="absolute top-2 right-2 w-2 h-2 bg-primary-container rounded-full"></span></button><div class="h-8 w-[1px] bg-white/5 mx-2"></div><button class="flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-full hover:bg-surface-container transition-colors border border-white/5"><span class="material-symbols-outlined text-primary text-[18px]">workspace_premium</span><span class="font-label-md text-label-md text-on-surface">Focus Mode</span></button></header><main class="relative pt-16 min-h-screen bg-background"><div class="p-container-padding max-w-[1200px] mx-auto"><div class="flex flex-col w-full h-[calc(100vh-4rem)] items-center justify-center relative overflow-hidden">
+<!-- Apple-style Segmented Control -->
+<div class="z-10 flex items-center gap-1 bg-surface-container-low p-1 rounded-full mb-16 border border-white/5 opacity-0 translate-y-4" style="animation: fadeUp 0.6s ease-out forwards;">
+<button class="px-8 py-2 rounded-full bg-surface-container-high text-on-surface font-label-md transition-colors shadow-sm">Timer</button>
+<button class="px-8 py-2 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low/50 font-label-md transition-colors">Stopwatch</button>
+</div>
+<!-- The Timer Centerpiece -->
+<div class="relative z-10 flex flex-col items-center justify-center mb-12 opacity-0 scale-95" style="animation: scaleIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.1s;">
+<!-- Outer Subtle Glow -->
+<div class="absolute inset-0 rounded-full shadow-[0_0_120px_rgba(255,180,165,0.03)] pointer-events-none" id="timer-glow"></div>
+<!-- SVG Progress Ring -->
+<svg class="absolute w-[460px] h-[460px] -rotate-90 pointer-events-none" viewBox="0 0 460 460">
+<!-- Background Track -->
+<circle class="text-surface-container-low" cx="230" cy="230" fill="none" r="220" stroke="currentColor" stroke-linecap="round" stroke-width="2"></circle>
+<!-- Progress Fill -->
+<circle class="text-primary drop-shadow-[0_0_8px_rgba(255,180,165,0.4)]" cx="230" cy="230" fill="none" id="progress-ring" r="220" stroke="currentColor" stroke-dasharray="1382.3" stroke-dashoffset="0" stroke-linecap="round" stroke-width="2" style="transition: stroke-dashoffset 1s linear;"></circle>
+</svg>
+<!-- Timer Display -->
+<div class="w-[440px] h-[440px] rounded-full flex flex-col items-center justify-center bg-transparent">
+<div class="font-display text-on-surface tracking-tight tabular-nums font-light" style="font-size: 7.5rem; line-height: 1;">45:00</div>
+<span class="font-label-md text-label-md text-on-surface-variant mt-6 tracking-wide uppercase opacity-60">Focus Time</span>
+</div>
+</div>
+<!-- Controls -->
+<div class="z-10 flex items-center gap-6 opacity-0 translate-y-4" style="animation: fadeUp 0.6s ease-out forwards; animation-delay: 0.2s;">
+<button class="flex items-center gap-2 px-8 py-4 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-300 font-label-md" id="play-btn">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span>Start</span>
+</button>
+<button class="flex items-center gap-2 px-8 py-4 rounded-full bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all duration-300 font-label-md" id="reset-btn">
+<span class="material-symbols-outlined text-[20px]">stop</span>
+<span>Finish</span>
+</button>
+</div>
+<!-- Upcoming Sequence / Stats (Subtle integration) -->
+<div class="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 flex items-center gap-16 opacity-0" style="animation: fadeIn 1s ease-out forwards; animation-delay: 0.4s;">
+<div class="flex flex-col items-center gap-2">
+<span class="font-headline-md text-headline-md text-on-surface font-light">3/4</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest opacity-60">Sessions</span>
+</div>
+<div class="w-px h-10 bg-white/5"></div>
+<div class="flex flex-col items-center gap-2">
+<span class="font-headline-md text-headline-md text-on-surface font-light">15m</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest opacity-60">Next Break</span>
+</div>
+</div>
+<style>
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const playBtn = document.getElementById('play-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const icon = playBtn.querySelector('.material-symbols-outlined');
+            const btnText = playBtn.querySelector('span:last-child');
+            const progressRing = document.getElementById('progress-ring');
+            const timerGlow = document.getElementById('timer-glow');
+            let isPlaying = false;
+            
+            // Circumference of r=220
+            const circumference = 2 * Math.PI * 220;
+            
+            // Mock simulation for visual effect
+            let progress = 0;
+            let interval;
+
+            playBtn.addEventListener('click', () => {
+                isPlaying = !isPlaying;
+                
+                if (isPlaying) {
+                    icon.textContent = 'pause';
+                    btnText.textContent = 'Pause';
+                    timerGlow.classList.replace('shadow-[0_0_120px_rgba(255,180,165,0.03)]', 'shadow-[0_0_120px_rgba(255,180,165,0.08)]');
+                    
+                    interval = setInterval(() => {
+                        progress += 0.5; // Arbitrary increment for demo
+                        if(progress > 100) progress = 0;
+                        const offset = circumference - (progress / 100) * circumference;
+                        progressRing.style.strokeDashoffset = offset;
+                    }, 1000);
+                } else {
+                    icon.textContent = 'play_arrow';
+                    btnText.textContent = 'Resume';
+                    timerGlow.classList.replace('shadow-[0_0_120px_rgba(255,180,165,0.08)]', 'shadow-[0_0_120px_rgba(255,180,165,0.03)]');
+                    clearInterval(interval);
+                }
+            });
+
+            resetBtn.addEventListener('click', () => {
+                progress = 0;
+                progressRing.style.strokeDashoffset = 0;
+                if(isPlaying) {
+                    isPlaying = false;
+                    icon.textContent = 'play_arrow';
+                    btnText.textContent = 'Start';
+                    timerGlow.classList.replace('shadow-[0_0_120px_rgba(255,180,165,0.08)]', 'shadow-[0_0_120px_rgba(255,180,165,0.03)]');
+                    clearInterval(interval);
+                } else {
+                    btnText.textContent = 'Start';
+                }
+            });
+        });
+    </script>
+</div></div></main></div></body></html>
