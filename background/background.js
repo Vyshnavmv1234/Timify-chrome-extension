@@ -101,6 +101,8 @@ async function onInstall(details) {
  * @returns {Promise<void>}
  */
 async function onAlarm(alarm) {
+  console.log('[Timify background] onAlarm fired:', alarm.name);
+
   if (alarm.name === 'timify_timer_alarm') {
     const result = await handleTimerAlarm();
 
@@ -122,6 +124,7 @@ async function onAlarm(alarm) {
       }).catch(() => {});
     }
   } else if (alarm.name === 'timify_motivation_alarm') {
+    console.log('[Timify background] ── Motivation alarm fired → calling triggerMotivationNotification()');
     await triggerMotivationNotification();
   }
 }
@@ -430,4 +433,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true; // Keep message channel open for async sendResponse
 });
 
-console.log('[Timify] Background service worker initialized');
+// Start motivation alarm scheduled at the configured interval (45 minutes)
+startMotivationAlarm().catch((err) => {
+  console.error('[Timify] Failed to start motivation alarm on init:', err);
+});
+
+console.log('[Timify] Background service worker initialized (45-minute motivation schedule active)');

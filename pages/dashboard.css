@@ -25,7 +25,7 @@
 
 .app {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background-color: var(--color-bg);
   color: var(--color-text);
   overflow: hidden;
@@ -36,7 +36,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  overflow-y: auto;
+  overflow: hidden;
   position: relative;
 }
 
@@ -45,13 +45,24 @@
    ================================================================ */
 
 .sidebar {
-  width: var(--sidebar-width);
+  /* Collapsed by default — only wide enough to show icons */
+  width: 60px;
   background-color: var(--color-card-lowest);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   padding: var(--spacing-2xl) 0 0;
   flex-shrink: 0;
+  overflow: hidden;
+  /* Smooth expand/collapse */
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Ensure sidebar sits above content when expanded so it overlays */
+  position: relative;
+  z-index: 20;
+}
+
+.sidebar:hover {
+  width: var(--sidebar-width);
 }
 
 /* Brand */
@@ -60,7 +71,9 @@
   align-items: center;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-2xl);
-  padding: 0 var(--spacing-2xl);
+  /* Keep consistent left padding so icon lines up when collapsed */
+  padding: 0 0 0 18px;
+  white-space: nowrap;
 }
 
 /* Square icon with primary-container background */
@@ -82,12 +95,20 @@
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--color-text);
+  /* Hide text label when collapsed; fade in when expanded */
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  white-space: nowrap;
+}
+
+.sidebar:hover .sidebar__wordmark {
+  opacity: 1;
 }
 
 /* Nav */
 .sidebar__nav {
   flex: 1;
-  padding: 0 var(--spacing-lg);
+  padding: 0 var(--spacing-sm);
 }
 
 .sidebar__nav ul {
@@ -102,7 +123,8 @@
   display: flex;
   align-items: center;
   width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
+  /* Reduced horizontal padding so icon is centered in collapsed state */
+  padding: var(--spacing-md) var(--spacing-md);
   border-radius: var(--radius-md);
   color: var(--color-text-secondary);
   font-size: var(--font-size-base);
@@ -112,6 +134,9 @@
   position: relative;
   /* Left-border placeholder — shown for active items */
   border-left: 2px solid transparent;
+  /* Prevent text from wrapping while sidebar is animating */
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .nav-item:hover {
@@ -132,6 +157,16 @@
 
 .nav-item__icon {
   flex-shrink: 0;
+}
+
+/* Nav item text labels — hidden when collapsed, fade in when sidebar expands */
+.nav-item > span:not(.nav-item__indicator) {
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.sidebar:hover .nav-item > span:not(.nav-item__indicator) {
+  opacity: 1;
 }
 
 
@@ -253,6 +288,13 @@
 .page {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE / Edge */
+}
+
+.page::-webkit-scrollbar {
+  display: none;                /* Chrome / Safari */
 }
 
 .page--hidden {
@@ -283,9 +325,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: calc(100vh - var(--nav-height));
+  /* Fill remaining height without overflowing — fixes the right scrollbar */
+  min-height: 0;
+  flex: 1;
   padding: var(--spacing-2xl) var(--spacing-2xl) var(--spacing-xl);
   overflow-y: auto;
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE / Edge */
+}
+
+.timer-page::-webkit-scrollbar {
+  display: none;                /* Chrome / Safari */
 }
 
 /* ── Mode Switch (Segmented Control) ── */
